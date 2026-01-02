@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # 1. ThingsBoard: 核心物联网平台
+  thingsboard:
+    network_mode: "bridge"
+    image: thingsboard/tb-postgres
+    container_name: my-tb-platform
+    ports:
+      - "8080:9090"
+      - "1883:1883"
+    volumes:
+      # 使用命名卷，不再映射本地文件夹，彻底解决权限报错
+      - tb-data-volume:/data
+    restart: always
+    environment:
+      - TB_QUEUE_TYPE=in-memory
+
+  # 2. Node-RED: 后端逻辑加工厂
+  nodered:
+    image: nodered/node-red:latest
+    container_name: my-node-red
+    ports:
+      - "1880:1880"
+    volumes:
+      - node-red-data-volume:/data
+    depends_on:
+      - thingsboard
+    restart: always
+
+  # 3. Mosquitto: 独立 MQTT Broker (用于 3D 前端 WS 连接)
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: my-mqtt-broker
+    ports:
+      - "1884:1883"
+      - "9001:9001"
+    volumes:
+      # 配置文件我们还是挂载本地，方便你修改，权限要求不严格
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data-volume:/mosquitto/data
+    restart: always
+
+# 定义所有命名卷
+volumes:
+  tb-data-volume:
+  node-red-data-volume:
+  mosquitto-data-volume:
+
+networks:
+  default:
+    name: iot-3d-network

@@ -1,0 +1,8 @@
+{
+  "name": "3D智能虚拟房间",
+  "description": "高仿真3D智能家居环境，支持第一人称漫游、视线交互触发摄像头及AI语音控制。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

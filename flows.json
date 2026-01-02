@@ -1,0 +1,215 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "8582c43661cc5354",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Register - HTTP In",
+        "url": "/api/v1/auth/register",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 310,
+        "y": 300,
+        "wires": [
+            [
+                "020327d2f905e730"
+            ]
+        ]
+    },
+    {
+        "id": "849acba8de0914e2",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "Register - HTTP Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 880,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "020327d2f905e730",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Register - Process",
+        "func": "// msg.req.body 包含普通字段\n// msg.req.files 包含上传的文件\nconst name = msg.req.body.name;\nconst file = msg.req.files.file; // 文件上传的字段名\n\nif (!name || !file) {\n    msg.statusCode = 400;\n    msg.payload = { message: \"缺少必要参数: name 或 file\" };\n    return msg;\n}\n\n// 生成用户ID\nconst userId = 'user_' + Date.now();\n\n// TODO: 后续保存文件和人脸特征\nconsole.log('注册用户:', name, '文件:', file.originalname);\n\nmsg.payload = {\n    id: userId,\n    name: name,\n    avatarUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,\n    registeredAt: Date.now()\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "849acba8de0914e2"
+            ]
+        ]
+    },
+    {
+        "id": "872b033bd2d38463",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Recognize - HTTP In",
+        "url": "/api/v1/auth/recognize",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 310,
+        "y": 360,
+        "wires": [
+            [
+                "40881ac25022636a"
+            ]
+        ]
+    },
+    {
+        "id": "8f43e13bc0064959",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "Recognize - HTTP Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 880,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "40881ac25022636a",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Recognize - Process",
+        "func": "const file = msg.req.files.file;\n\nif (!file) {\n    msg.statusCode = 400;\n    msg.payload = { message: \"缺少必要参数: file\" };\n    return msg;\n}\n\n// TODO: 后续集成人脸识别\n// 暂时返回404表示未识别到\nconsole.log('接收待识别人脸:', file.originalname);\n\nmsg.statusCode = 404;\nmsg.payload = { message: \"未识别到已知用户\" };\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 360,
+        "wires": [
+            [
+                "8f43e13bc0064959"
+            ]
+        ]
+    },
+    {
+        "id": "5772f0db946eb78d",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Get Devices - HTTP In",
+        "url": "/api/v1/auth/devices",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 320,
+        "y": 420,
+        "wires": [
+            [
+                "6b9bdadefbc1f3ed"
+            ]
+        ]
+    },
+    {
+        "id": "7f2f150f55c8815e",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "Get Devices - HTTP Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 990,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "6b9bdadefbc1f3ed",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Get Devices - Return Data",
+        "func": "// 返回前端需要的设备列表（暂时硬编码）\nmsg.payload = [\n    { id: 'light-main', name: '智能吸顶灯', type: 'LIGHT', isOn: true, position: [0, 2.9, 0], color: '#ffffff', value: 80 },\n    { id: 'ac', name: '空调', type: 'AC', isOn: false, position: [-4.8, 2.4, 0], rotation: [0, Math.PI / 2, 0], value: 24 },\n    { id: 'curtain', name: '智能窗帘', type: 'CURTAIN', isOn: false, position: [4.9, 1.5, 0], rotation: [0, Math.PI / 2, 0], value: 0 },\n    // ... 其他设备\n];\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 420,
+        "wires": [
+            [
+                "7f2f150f55c8815e"
+            ]
+        ]
+    },
+    {
+        "id": "3f2dbfba3f4b3ff3",
+        "type": "http in",
+        "z": "f6f2187d.f17ca8",
+        "name": "Update Device - HTTP In",
+        "url": "/api/v1/auth/devices/:id",
+        "method": "put",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 330,
+        "y": 480,
+        "wires": [
+            [
+                "c3bf79fdfa2f23ae"
+            ]
+        ]
+    },
+    {
+        "id": "48d86539c94037b9",
+        "type": "http response",
+        "z": "f6f2187d.f17ca8",
+        "name": "Update Device - HTTP Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1000,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "c3bf79fdfa2f23ae",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Update Device - Logic",
+        "func": "const deviceId = msg.req.params.id;\nconst updates = msg.req.body; // { isOn: true, value: 25 }\n\n// TODO: 更新设备状态到 ThingsBoard\n// 这里暂时只返回成功响应\n\nconsole.log('Updating device:', deviceId, 'with:', updates);\nmsg.payload = { id: deviceId, ...updates };\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 480,
+        "wires": [
+            [
+                "48d86539c94037b9"
+            ]
+        ]
+    }
+]
