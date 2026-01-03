@@ -1,0 +1,54 @@
+[
+  {
+    "label": "light-main",
+    "accessToken": "FIgKhcvzfJgASE0Ktkxs"
+  },
+  {
+    "label": "ac",
+    "accessToken": "77TfGbT3C7erpSTCSLEy"
+  },
+  {
+    "label": "curtain",
+    "accessToken": "GWy2FdUCV82Mgizbfd8q"
+  },
+  {
+    "label": "desk",
+    "accessToken": "NP73hs0SLiITaCBhy7KN"
+  },
+  {
+    "label": "projector",
+    "accessToken": "RY7vAlF5KVwHH1WI3sPI"
+  },
+  {
+    "label": "purifier",
+    "accessToken": "oiIWonZNoEEVxgKEFP9G"
+  },
+  {
+    "label": "humidifier",
+    "accessToken": "kTc10MMEa7FYCgQrXYQU"
+  },
+  {
+    "label": "robot",
+    "accessToken": "KjKWeLUnBkWJHw3liL13"
+  },
+  {
+    "label": "sensor",
+    "accessToken": "3YSKIPL2bO5Xs5tulzsb"
+  },
+  {
+    "label": "cam-1",
+    "accessToken": "P2OFH7UopkdvGkK2uux6"
+  },
+  {
+    "label": "cam-2",
+    "accessToken": "yj3BsdkKNCGzPDFpWw3u"
+  },
+  {
+    "label": "cam-3",
+    "accessToken": "xwoTDY0jKC7kVgojgrGs"
+  },
+  {
+    "label": "cam-4",
+    "accessToken": "AGWjz815XYc9dVeQ3VQd"
+  }
+]

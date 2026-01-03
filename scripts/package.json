@@ -1,0 +1,12 @@
+{
+  "name": "tb-device-creator",
+  "version": "1.0.0",
+  "description": "ThingsBoard 设备批量创建脚本",
+  "scripts": {
+    "create-devices": "node create_tb_devices.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "mqtt": "^5.14.1"
+  }
+}

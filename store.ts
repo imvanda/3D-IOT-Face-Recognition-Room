@@ -70,25 +70,46 @@ export const useStore = create<AppState>((set, get) => ({
   ],
 
   toggleDevice: async (id) => {
+    // 乐观更新：立即切换状态
+    const device = get().devices.find(d => d.id === id);
+    if (!device) return;
+    
+    const previousState = device.isOn;
+    const newState = !previousState;
+    
+    set((state) => ({
+      devices: state.devices.map((d) => d.id === id ? { ...d, isOn: newState } : d),
+      logs: [...state.logs, `已${newState ? '开启' : '关闭'} ${device.name}`]
+    }));
+
     try {
+      // 发送请求给后端
       const result = await api.toggleDevice(id);
-      set((state) => ({
-        devices: state.devices.map((d) => d.id === id ? { ...d, isOn: result.isOn } : d),
-        logs: [...state.logs, `已${result.isOn ? '开启' : '关闭'} ${state.devices.find(d => d.id === id)?.name}`]
-      }));
+      
+      // 再次确认状态（虽然通常是一致的）
+      if (result.isOn !== newState) {
+          set((state) => ({
+            devices: state.devices.map((d) => d.id === id ? { ...d, isOn: result.isOn } : d)
+          }));
+      }
     } catch (error: any) {
+      // 失败回滚
       set((state) => ({
+        devices: state.devices.map((d) => d.id === id ? { ...d, isOn: previousState } : d),
         logs: [...state.logs, `切换设备失败: ${error.message}`]
       }));
     }
   },
 
   setDeviceValue: async (id, value) => {
+    // 先更新本地状态（立即响应，不等待API）
+    set((state) => ({
+      devices: state.devices.map((d) => d.id === id ? { ...d, value } : d)
+    }));
+    
+    // 然后异步发送到后端
     try {
       await api.setDeviceValue(id, value);
-      set((state) => ({
-        devices: state.devices.map((d) => d.id === id ? { ...d, value } : d)
-      }));
     } catch (error: any) {
       set((state) => ({
         logs: [...state.logs, `更新设备参数失败: ${error.message}`]
@@ -205,18 +226,62 @@ export const useStore = create<AppState>((set, get) => ({
 
   // MQTT connection
   initializeMQTT: async () => {
+    // 防止重复连接
+    if ((mqttService as any).client?.connected) {
+      console.log('[MQTT] Already connected, skipping initialization');
+      return;
+    }
+
     try {
       await mqttService.connect();
+      // 订阅设备状态变化（包含 isOn, value, 等属性）
       mqttService.subscribeDevices((deviceData) => {
-        set((state) => ({
-          devices: state.devices.map((d) =>
-            d.id === deviceData.id ? { ...d, ...deviceData } : d
-          ),
-          logs: [...state.logs, `MQTT: ${deviceData.name || deviceData.id} 状态已更新`]
-        }));
+        console.log('[MQTT] Received device update:', deviceData);
+        set((state) => {
+          const deviceId = deviceData.deviceId;
+          if (!deviceId) {
+            console.warn('[MQTT] Missing deviceId in message:', deviceData);
+            return state;
+          }
+
+          const existingDevice = state.devices.find(d => d.id === deviceId);
+          if (!existingDevice) {
+            console.warn('[MQTT] Device not found:', deviceId);
+            return state;
+          }
+
+          // 更新设备状态
+          // 注意：如果设备值没有变化，不更新（避免覆盖用户正在输入的值）
+          let hasChange = false;
+          const updatedDevices = state.devices.map((d) => {
+            if (d.id === deviceId) {
+              const updated: IotDevice = { ...d };
+              
+              if (deviceData.isOn !== undefined && deviceData.isOn !== d.isOn) {
+                updated.isOn = deviceData.isOn;
+                hasChange = true;
+              }
+              if (deviceData.value !== undefined && deviceData.value !== d.value) {
+                updated.value = deviceData.value;
+                hasChange = true;
+              }
+              
+              return hasChange ? updated : d;
+            }
+            return d;
+          });
+          
+          return {
+            devices: updatedDevices,
+            logs: hasChange ? [...state.logs, `设备 ${existingDevice.name} 状态已更新`] : state.logs
+          };
+        });
       });
     } catch (error: any) {
       console.error('MQTT connection failed:', error);
+      set((state) => ({
+        logs: [...state.logs, `MQTT 连接失败: ${error.message}`]
+      }));
     }
   },
 

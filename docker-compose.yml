@@ -3,18 +3,18 @@ version: '3.8'
 services:
   # 1. ThingsBoard: 核心物联网平台
   thingsboard:
-    network_mode: "bridge"
     image: thingsboard/tb-postgres
     container_name: my-tb-platform
     ports:
-      - "8080:9090"
-      - "1883:1883"
+      - "8080:9090"  # HTTP Web UI
+      - "1883:1883"  # MQTT 端口
     volumes:
-      # 使用命名卷，不再映射本地文件夹，彻底解决权限报错
       - tb-data-volume:/data
     restart: always
     environment:
       - TB_QUEUE_TYPE=in-memory
+    networks:
+      - iot-network
 
   # 2. Node-RED: 后端逻辑加工厂
   nodered:
@@ -23,30 +23,37 @@ services:
     ports:
       - "1880:1880"
     volumes:
-      - node-red-data-volume:/data
+      # 【关键修正】挂载整个目录而非单个文件，避免 EBUSY 锁定
+      # 宿主机的 ./nodered-data 会包含 flows.json 和所有插件
+      - ./nodered-data:/data
     depends_on:
       - thingsboard
+      - mosquitto
     restart: always
+    networks:
+      - iot-network
 
   # 3. Mosquitto: 独立 MQTT Broker (用于 3D 前端 WS 连接)
   mosquitto:
     image: eclipse-mosquitto:latest
     container_name: my-mqtt-broker
     ports:
-      - "1884:1883"
-      - "9001:9001"
+      - "1884:1883"  # 避开 ThingsBoard 的 1883
+      - "9001:9001"  # WebSocket 端口，供前端 3D 房间连接
     volumes:
-      # 配置文件我们还是挂载本地，方便你修改，权限要求不严格
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - mosquitto-data-volume:/mosquitto/data
     restart: always
+    networks:
+      - iot-network
 
-# 定义所有命名卷
+# 卷定义
 volumes:
   tb-data-volume:
-  node-red-data-volume:
   mosquitto-data-volume:
+  # node-red 使用了本地目录挂载，此处可删掉命名卷
 
 networks:
-  default:
-    name: iot-3d-network
+  iot-network:
+    driver: bridge
+    name: iot-network

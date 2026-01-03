@@ -7,7 +7,7 @@ import { useStore } from '../store';
 export const Controls = () => {
   const { camera, gl } = useThree();
   const controlsRef = useRef<any>(null);
-  const { setIsLocked } = useStore();
+  const { setIsLocked, isWebcamOpen, isAuthOverlayOpen } = useStore();
   
   const moveForward = useRef(false);
   const moveBackward = useRef(false);
@@ -91,13 +91,21 @@ export const Controls = () => {
     }
   });
 
+  // If any overlay is open, don't allow pointer lock to be triggered by clicks on the canvas
+  const isLockedDisabled = isWebcamOpen || isAuthOverlayOpen;
+
   return (
-    <PointerLockControls 
-        ref={controlsRef} 
-        domElement={gl.domElement}
-        makeDefault
-        onLock={() => setIsLocked(true)}
-        onUnlock={() => setIsLocked(false)}
-    />
+    <>
+        {!isLockedDisabled && (
+            <PointerLockControls 
+                ref={controlsRef} 
+                domElement={gl.domElement}
+                makeDefault
+                onLock={() => setIsLocked(true)}
+                onUnlock={() => setIsLocked(false)}
+                pointerSpeed={0.5}
+            />
+        )}
+    </>
   );
 };

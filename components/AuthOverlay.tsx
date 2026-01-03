@@ -20,24 +20,39 @@ export const AuthOverlay = () => {
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [status, setStatus] = useState<string>('系统准备就绪...');
     const [isLoading, setIsLoading] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    const MAX_RETRIES = 3;
 
     // Camera Stream Setup
     useEffect(() => {
         let stream: MediaStream | null = null;
+        let isMounted = true;
+
         if (isAuthOverlayOpen) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(s => {
+                    if (!isMounted) {
+                        s.getTracks().forEach(t => t.stop());
+                        return;
+                    }
                     stream = s;
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
-                        videoRef.current.play();
+                        const playPromise = videoRef.current.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(err => {
+                                console.log("[AuthOverlay] Play interrupted or prevented:", err.message);
+                            });
+                        }
                     }
                 })
                 .catch(err => {
-                    setStatus("无法访问摄像头: " + err.message);
+                    if (isMounted) setStatus("无法访问摄像头: " + err.message);
                 });
         }
+
         return () => {
+            isMounted = false;
             if (stream) stream.getTracks().forEach(t => t.stop());
         };
     }, [isAuthOverlayOpen]);
@@ -46,13 +61,13 @@ export const AuthOverlay = () => {
     // To avoid spamming API, we do this manually via button or with a delay in a real app.
     // Here we will keep it manual or auto-scan once.
     useEffect(() => {
-        if (isAuthOverlayOpen && mode === 'scan' && !isLoading) {
+        if (isAuthOverlayOpen && mode === 'scan' && !isLoading && retryCount < MAX_RETRIES) {
             const timer = setTimeout(() => {
                  captureAndScan();
-            }, 1000);
+            }, 2000); // Increased delay to 2s
             return () => clearTimeout(timer);
         }
-    }, [isAuthOverlayOpen, mode]);
+    }, [isAuthOverlayOpen, mode, isLoading, retryCount]);
 
     const captureFrame = (): string | null => {
         if (videoRef.current && canvasRef.current) {
@@ -71,7 +86,7 @@ export const AuthOverlay = () => {
         const image = captureFrame();
         if (!image) return;
 
-        setStatus('正在连接云端识别...');
+        setStatus(`正在连接云端识别 (${retryCount + 1}/${MAX_RETRIES})...`);
         setIsLoading(true);
 
         try {
@@ -80,13 +95,17 @@ export const AuthOverlay = () => {
             setTimeout(() => {
                 setAuthOverlayOpen(false);
                 setIsLoading(false);
+                setRetryCount(0);
             }, 800);
         } catch (e: any) {
             console.error(e);
-            setStatus('未识别到用户，请注册');
+            setRetryCount(prev => prev + 1);
+            if (retryCount + 1 >= MAX_RETRIES) {
+                 setStatus('无法识别用户，请手动注册');
+            } else {
+                 setStatus('未识别到用户，正在重试...');
+            }
             setIsLoading(false);
-            // Optionally auto-switch to register if explicitly failed to match
-            // setMode('register'); 
         }
     };
 

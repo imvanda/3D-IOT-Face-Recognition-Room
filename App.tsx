@@ -14,7 +14,9 @@ function App() {
     // 应用启动时获取设备列表和连接 MQTT
     fetchDevices();
     initializeMQTT();
-  }, [fetchDevices, initializeMQTT]);
+    // 只在组件挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="w-full h-screen relative bg-slate-900">

@@ -5,6 +5,10 @@ const MQTT_BROKER_URL = 'ws://localhost:9001';
 const MQTT_TOPIC_DEVICES = 'iot/room/devices';
 const MQTT_TOPIC_DEVICE_PREFIX = 'iot/room/devices/';
 
+console.log('[MQTT Service] Initializing...');
+console.log('[MQTT Service] Broker URL:', MQTT_BROKER_URL);
+console.log('[MQTT Service] Devices Topic:', MQTT_TOPIC_DEVICES);
+
 class MqttService {
   private client: MqttClient | null = null;
   private subscriptions: Map<string, (message: any) => void> = new Map();
@@ -18,6 +22,7 @@ class MqttService {
 
       this.client.on('connect', () => {
         console.log('MQTT Client connected');
+        console.log('[MQTT] Connected to:', MQTT_BROKER_URL);
         resolve();
       });
 
@@ -26,15 +31,23 @@ class MqttService {
         reject(err);
       });
 
+      this.client.on('reconnect', () => {
+        console.log('MQTT Client reconnecting...');
+      });
+
       this.client.on('message', (topic, message) => {
+        console.log('[MQTT] Message received on topic:', topic);
         const callback = this.subscriptions.get(topic);
         if (callback) {
           try {
             const data = JSON.parse(message.toString());
+            console.log('[MQTT] Payload:', data);
             callback(data);
           } catch (error) {
-            console.error('Failed to parse MQTT message:', error);
+            console.error('[MQTT] Failed to parse message:', error);
           }
+        } else {
+          console.warn('[MQTT] No callback for topic:', topic);
         }
       });
     });

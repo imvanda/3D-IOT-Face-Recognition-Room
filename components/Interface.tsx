@@ -28,6 +28,8 @@ export const Interface = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [isDecorateOpen, setIsDecorateOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isDragging, setIsDragging] = useState<Record<string, boolean>>({});
+  const [localValues, setLocalValues] = useState<Record<string, number>>({});
 
   const handleSend = async () => {
     if (!prompt.trim()) return;
@@ -93,7 +95,11 @@ export const Interface = () => {
 
   const renderControlPanel = (device: IotDevice) => {
     return (
-        <div className="mt-2 pt-2 border-t border-slate-600 space-y-3 animate-in fade-in slide-in-from-top-2">
+        <div 
+            className="mt-2 pt-2 border-t border-slate-600 space-y-3 animate-in fade-in slide-in-from-top-2"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+        >
             <div className="flex justify-between items-center">
                 <span className="text-xs text-slate-400">电源开关</span>
                 <button 
@@ -108,12 +114,38 @@ export const Interface = () => {
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>温度设定</span>
-                        <span>{device.value}°C</span>
+                        <span>{(localValues[device.id] ?? device.value) as number}°C</span>
                     </div>
                     <input 
                         type="range" min="16" max="30" step="1"
-                        value={device.value as number}
-                        onChange={(e) => setDeviceValue(device.id, parseInt(e.target.value))}
+                        value={(localValues[device.id] ?? device.value) as number}
+                        onInput={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onChange={(e) => {
+                             // React 的 onChange 在滑条上行为等同于 onInput，这里仅用于兼容性，实际逻辑在 onMouseUp/onTouchEnd
+                             const value = parseInt((e.target as HTMLInputElement).value);
+                             setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onMouseUp={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
+                        onTouchEnd={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
                         className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-400"
                     />
                 </div>
@@ -123,12 +155,37 @@ export const Interface = () => {
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>亮度</span>
-                        <span>{device.value}%</span>
+                        <span>{(localValues[device.id] ?? device.value) as number}%</span>
                     </div>
                     <input 
                         type="range" min="0" max="100" step="5"
-                        value={device.value as number}
-                        onChange={(e) => setDeviceValue(device.id, parseInt(e.target.value))}
+                        value={(localValues[device.id] ?? device.value) as number}
+                        onInput={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onChange={(e) => {
+                             const value = parseInt((e.target as HTMLInputElement).value);
+                             setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onMouseUp={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
+                        onTouchEnd={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
                         className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-yellow-400"
                     />
                 </div>
@@ -138,12 +195,37 @@ export const Interface = () => {
                  <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>开合程度</span>
-                        <span>{device.value}%</span>
+                        <span>{(localValues[device.id] ?? device.value) as number}%</span>
                     </div>
                     <input 
                         type="range" min="0" max="100" step="5"
-                        value={device.value as number}
-                        onChange={(e) => setDeviceValue(device.id, parseInt(e.target.value))}
+                        value={(localValues[device.id] ?? device.value) as number}
+                        onInput={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onChange={(e) => {
+                             const value = parseInt((e.target as HTMLInputElement).value);
+                             setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onMouseUp={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
+                        onTouchEnd={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
                         className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-cyan-400"
                     />
                 </div>
@@ -153,12 +235,37 @@ export const Interface = () => {
                  <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>高度 (cm)</span>
-                        <span>{device.value}</span>
+                        <span>{localValues[device.id] ?? device.value}</span>
                     </div>
                     <input 
                         type="range" min="70" max="120" step="1"
-                        value={device.value as number}
-                        onChange={(e) => setDeviceValue(device.id, parseInt(e.target.value))}
+                        value={(localValues[device.id] ?? device.value) as number}
+                        onInput={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onChange={(e) => {
+                             const value = parseInt((e.target as HTMLInputElement).value);
+                             setLocalValues(prev => ({ ...prev, [device.id]: value }));
+                        }}
+                        onMouseUp={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
+                        onTouchEnd={(e) => {
+                            const value = parseInt((e.target as HTMLInputElement).value);
+                            setLocalValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[device.id];
+                                return newValues;
+                            });
+                            setDeviceValue(device.id, value);
+                        }}
                         className="w-full h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-orange-400"
                     />
                 </div>
@@ -168,10 +275,14 @@ export const Interface = () => {
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
+    <div 
+        className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6" 
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+    >
       
       {/* Identity System Overlay */}
-      <div className="pointer-events-auto">
+      <div className="pointer-events-auto" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
          <AuthOverlay />
       </div>
 
@@ -186,7 +297,11 @@ export const Interface = () => {
       )}
 
       {/* Top Left: Status & Logs */}
-      <div className="pointer-events-auto bg-black/60 text-white p-4 rounded-lg backdrop-blur-sm max-w-sm border border-slate-700 shadow-lg z-50">
+      <div 
+        className="pointer-events-auto bg-black/60 text-white p-4 rounded-lg backdrop-blur-sm max-w-sm border border-slate-700 shadow-lg z-50"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         <h1 className="text-xl font-bold mb-2 flex items-center gap-2 text-cyan-400">
            <Monitor /> 智能家居控制中心
         </h1>
@@ -200,7 +315,11 @@ export const Interface = () => {
       </div>
 
       {/* Top Center: User Identity Widget */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-start gap-2">
+      <div 
+        className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-start gap-2"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
          {activeUsers.map(user => (
              <div key={user.id} className="bg-slate-900/80 backdrop-blur-md rounded-full border border-cyan-500/50 pr-4 flex items-center gap-3 p-1 animate-in fade-in slide-in-from-top-4 shadow-lg group">
                  <img src={user.avatarUrl} alt={user.name} className="w-10 h-10 rounded-full object-cover border-2 border-cyan-400" />
@@ -256,7 +375,11 @@ export const Interface = () => {
 
           {/* Device List (Scrollable) */}
           {!isDecorateOpen && (
-              <div className="w-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar max-h-[calc(100vh-200px)]">
+              <div 
+                className="w-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar max-h-[calc(100vh-200px)]"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {devices.filter(d => d.type !== DeviceType.CAMERA).map(d => {
                     const isSelected = selectedDeviceId === d.id;
                     return (
@@ -291,7 +414,11 @@ export const Interface = () => {
 
           {/* Decorate Panel */}
           {isDecorateOpen && (
-              <div className="w-72 bg-slate-900/90 backdrop-blur-md border border-slate-600 rounded-lg p-4 shadow-xl text-white">
+              <div 
+                className="w-72 bg-slate-900/90 backdrop-blur-md border border-slate-600 rounded-lg p-4 shadow-xl text-white"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
                   <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
                       <h3 className="font-bold flex items-center gap-2"><PaintRoller size={16}/> 装修模式</h3>
                       <button onClick={() => setIsDecorateOpen(false)} className="hover:text-red-400"><X size={16}/></button>
