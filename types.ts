@@ -15,7 +15,7 @@ export interface IotDevice {
   id: string;
   name: string;
   type: DeviceType;
-  isOn: boolean;
+  status: boolean;
   value?: number | string; // e.g., temperature, height, percentage
   position: [number, number, number];
   rotation?: [number, number, number];
@@ -32,4 +32,19 @@ export interface UserProfile {
   name: string;
   avatarUrl: string; // Base64 or URL
   registeredAt: number;
+}
+
+export interface Preset {
+  id: string;
+  name: string;
+  userId: string;
+  userName: string;
+  faceImage: string; // Base64
+  gestureImage: string; // Base64
+  deviceStates: {
+    deviceId: string;
+    status: boolean;
+    value?: number | string;
+  }[];
+  createdAt: number;
 }

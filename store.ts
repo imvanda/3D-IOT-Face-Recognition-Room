@@ -21,6 +21,7 @@ interface AppState {
   isWebcamOpen: boolean;
   openWebcam: () => void;
   closeWebcam: () => void;
+  openedCameraId: string | null; // ID of the camera that triggered the webcam to open
   
   // User Identity System
   // registeredUsers: UserProfile[]; // Removed: Frontend no longer manages the DB
@@ -53,20 +54,21 @@ interface AppState {
 }
 
 export const useStore = create<AppState>((set, get) => ({
+  openedCameraId: null,
   devices: [
-    { id: 'light-main', name: '智能吸顶灯', type: DeviceType.LIGHT, isOn: true, position: [0, 2.9, 0], color: '#ffffff', value: 80 },
-    { id: 'ac', name: '空调', type: DeviceType.AC, isOn: false, position: [-4.8, 2.4, 0], rotation: [0, Math.PI / 2, 0], value: 24 },
-    { id: 'curtain', name: '智能窗帘', type: DeviceType.CURTAIN, isOn: false, position: [4.9, 1.5, 0], rotation: [0, Math.PI / 2, 0], value: 0 }, 
-    { id: 'desk', name: '升降桌', type: DeviceType.DESK, isOn: true, position: [0, 0, 0], rotation: [0, -Math.PI / 2, 0], value: 75 }, 
-    { id: 'projector', name: '投影仪', type: DeviceType.PROJECTOR, isOn: false, position: [0, 2.8, 2], rotation: [0, Math.PI, 0] },
-    { id: 'purifier', name: '空气净化器', type: DeviceType.PURIFIER, isOn: true, position: [-4.2, 0, -4.2], rotation: [0, Math.PI / 4, 0], value: 'Auto' },
-    { id: 'humidifier', name: '加湿器', type: DeviceType.HUMIDIFIER, isOn: false, position: [-4.5, 0, 2.5], rotation: [0, Math.PI / 2, 0] },
-    { id: 'robot', name: '扫地机器人', type: DeviceType.ROBOT, isOn: false, position: [3, 0.1, -3] },
-    { id: 'sensor', name: '温湿度传感器', type: DeviceType.SENSOR, isOn: true, position: [-4.95, 1.5, 1], rotation: [0, Math.PI / 2, 0], value: '24°C / 45%' },
-    { id: 'cam-1', name: '摄像头 (前左)', type: DeviceType.CAMERA, isOn: true, position: [-4.5, 2.8, -4.5], rotation: [0, -Math.PI / 4, -Math.PI / 6] },
-    { id: 'cam-2', name: '摄像头 (前右)', type: DeviceType.CAMERA, isOn: true, position: [4.5, 2.8, -4.5], rotation: [0, Math.PI / 4, -Math.PI / 6] },
-    { id: 'cam-3', name: '摄像头 (后左)', type: DeviceType.CAMERA, isOn: true, position: [-4.5, 2.8, 4.5], rotation: [0, -Math.PI * 0.75, -Math.PI / 6] },
-    { id: 'cam-4', name: '摄像头 (后右)', type: DeviceType.CAMERA, isOn: true, position: [4.5, 2.8, 4.5], rotation: [0, Math.PI * 0.75, -Math.PI / 6] },
+    { id: 'light-main', name: '智能吸顶灯', type: DeviceType.LIGHT, status: false, position: [0, 2.9, 0], color: '#ffffff', value: 80 },
+    { id: 'ac', name: '空调', type: DeviceType.AC, status: false, position: [-4.8, 2.4, 0], rotation: [0, Math.PI / 2, 0], value: 24 },
+    { id: 'curtain', name: '智能窗帘', type: DeviceType.CURTAIN, status: false, position: [4.9, 1.5, 0], rotation: [0, Math.PI / 2, 0], value: 0 },
+    { id: 'desk', name: '升降桌', type: DeviceType.DESK, status: false, position: [0, 0, 0], rotation: [0, -Math.PI / 2, 0], value: 75 },
+    { id: 'projector', name: '投影仪', type: DeviceType.PROJECTOR, status: false, position: [0, 2.8, 2], rotation: [0, Math.PI, 0] },
+    { id: 'purifier', name: '空气净化器', type: DeviceType.PURIFIER, status: false, position: [-4.2, 0, -4.2], rotation: [0, Math.PI / 4, 0], value: 'Auto' },
+    { id: 'humidifier', name: '加湿器', type: DeviceType.HUMIDIFIER, status: false, position: [-4.5, 0, 2.5], rotation: [0, Math.PI / 2, 0] },
+    { id: 'robot', name: '扫地机器人', type: DeviceType.ROBOT, status: false, position: [3, 0.1, -3] },
+    { id: 'sensor', name: '温湿度传感器', type: DeviceType.SENSOR, status: false, position: [-4.95, 1.5, 1], rotation: [0, Math.PI / 2, 0], value: '24°C / 45%' },
+    { id: 'cam-1', name: '摄像头 (前左)', type: DeviceType.CAMERA, status: false, position: [-4.5, 2.8, -4.5], rotation: [0, -Math.PI / 4, -Math.PI / 6] },
+    { id: 'cam-2', name: '摄像头 (前右)', type: DeviceType.CAMERA, status: false, position: [4.5, 2.8, -4.5], rotation: [0, Math.PI / 4, -Math.PI / 6] },
+    { id: 'cam-3', name: '摄像头 (后左)', type: DeviceType.CAMERA, status: false, position: [-4.5, 2.8, 4.5], rotation: [0, -Math.PI * 0.75, -Math.PI / 6] },
+    { id: 'cam-4', name: '摄像头 (后右)', type: DeviceType.CAMERA, status: false, position: [4.5, 2.8, 4.5], rotation: [0, Math.PI * 0.75, -Math.PI / 6] },
   ],
 
   toggleDevice: async (id) => {
@@ -74,28 +76,28 @@ export const useStore = create<AppState>((set, get) => ({
     const device = get().devices.find(d => d.id === id);
     if (!device) return;
     
-    const previousState = device.isOn;
+    const previousState = device.status;
     const newState = !previousState;
     
     set((state) => ({
-      devices: state.devices.map((d) => d.id === id ? { ...d, isOn: newState } : d),
+      devices: state.devices.map((d) => d.id === id ? { ...d, status: newState } : d),
       logs: [...state.logs, `已${newState ? '开启' : '关闭'} ${device.name}`]
     }));
 
     try {
-      // 发送请求给后端
-      const result = await api.toggleDevice(id);
+      // 发送请求给后端，明确指定目标状态
+      const result = await api.toggleDevice(id, newState);
       
       // 再次确认状态（虽然通常是一致的）
-      if (result.isOn !== newState) {
+      if (result.status !== newState) {
           set((state) => ({
-            devices: state.devices.map((d) => d.id === id ? { ...d, isOn: result.isOn } : d)
+            devices: state.devices.map((d) => d.id === id ? { ...d, status: result.status } : d)
           }));
       }
     } catch (error: any) {
       // 失败回滚
       set((state) => ({
-        devices: state.devices.map((d) => d.id === id ? { ...d, isOn: previousState } : d),
+        devices: state.devices.map((d) => d.id === id ? { ...d, status: previousState } : d),
         logs: [...state.logs, `切换设备失败: ${error.message}`]
       }));
     }
@@ -155,6 +157,25 @@ export const useStore = create<AppState>((set, get) => ({
   incrementLookProgress: (delta) => set((state) => {
     const next = state.lookAtProgress + delta;
     if (next >= 100 && !state.isWebcamOpen) {
+      // 打开摄像头时，更新对应摄像头设备的status为true，并通过MQTT发送
+      const cameraDeviceId = state.lookingAtCameraId;
+      if (cameraDeviceId) {
+        // 更新设备状态
+        const updatedDevices = state.devices.map(d => 
+          d.id === cameraDeviceId ? { ...d, status: true } : d
+        );
+        
+        // 通过MQTT发送状态更新
+        mqttService.publishDeviceUpdate(cameraDeviceId, { status: true });
+        
+        return { 
+          lookAtProgress: 0, 
+          isWebcamOpen: true, 
+          openedCameraId: cameraDeviceId,
+          devices: updatedDevices,
+          logs: [...state.logs, `连接到物理摄像头...`] 
+        };
+      }
       return { lookAtProgress: 0, isWebcamOpen: true, logs: [...state.logs, `连接到物理摄像头...`] };
     }
     return { lookAtProgress: Math.min(next, 100) };
@@ -164,7 +185,27 @@ export const useStore = create<AppState>((set, get) => ({
   // Webcam Modal
   isWebcamOpen: false,
   openWebcam: () => set({ isWebcamOpen: true }),
-  closeWebcam: () => set({ isWebcamOpen: false, lookAtProgress: 0 }),
+  closeWebcam: () => set((state) => {
+    // 关闭摄像头时，将对应摄像头设备的status设为false，并通过MQTT发送
+    const cameraDeviceId = state.openedCameraId;
+    if (cameraDeviceId) {
+      // 更新设备状态
+      const updatedDevices = state.devices.map(d => 
+        d.id === cameraDeviceId ? { ...d, status: false } : d
+      );
+      
+      // 通过MQTT发送状态更新
+      mqttService.publishDeviceUpdate(cameraDeviceId, { status: false });
+      
+      return { 
+        isWebcamOpen: false, 
+        lookAtProgress: 0, 
+        openedCameraId: null,
+        devices: updatedDevices 
+      };
+    }
+    return { isWebcamOpen: false, lookAtProgress: 0, openedCameraId: null };
+  }),
   
   // User Identity System
   activeUsers: [],
@@ -234,7 +275,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     try {
       await mqttService.connect();
-      // 订阅设备状态变化（包含 isOn, value, 等属性）
+      // 订阅设备状态变化（包含 status, value, 等属性）
       mqttService.subscribeDevices((deviceData) => {
         console.log('[MQTT] Received device update:', deviceData);
         set((state) => {
@@ -257,8 +298,8 @@ export const useStore = create<AppState>((set, get) => ({
             if (d.id === deviceId) {
               const updated: IotDevice = { ...d };
               
-              if (deviceData.isOn !== undefined && deviceData.isOn !== d.isOn) {
-                updated.isOn = deviceData.isOn;
+              if (deviceData.status !== undefined && deviceData.status !== d.status) {
+                updated.status = deviceData.status;
                 hasChange = true;
               }
               if (deviceData.value !== undefined && deviceData.value !== d.value) {

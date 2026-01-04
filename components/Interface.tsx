@@ -6,12 +6,12 @@ import { DeviceType, IotDevice } from '../types';
 import { AuthOverlay } from './AuthOverlay';
 
 export const Interface = () => {
-  const { 
-    devices, 
-    toggleDevice, 
+  const {
+    devices,
+    toggleDevice,
     setDeviceValue,
-    updateDevicesFromAI, 
-    logs, 
+    updateDevicesFromAI,
+    logs,
     addLog,
     lookAtProgress,
     isWebcamOpen,
@@ -22,14 +22,28 @@ export const Interface = () => {
     logoutUser,
     setAuthOverlayOpen
   } = useStore();
-  
+
   const [prompt, setPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [isDecorateOpen, setIsDecorateOpen] = useState(false);
+  const [isPresetOpen, setIsPresetOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const presetVideoRef = useRef<HTMLVideoElement>(null);
+  const presetCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState<Record<string, boolean>>({});
   const [localValues, setLocalValues] = useState<Record<string, number>>({});
+
+  // 预设相关状态
+  const [presetName, setPresetName] = useState('');
+  const [capturedFaceImage, setCapturedFaceImage] = useState<string | null>(null);
+  const [capturedGestureImage, setCapturedGestureImage] = useState<string | null>(null);
+  const [presetStep, setPresetStep] = useState<'name' | 'face' | 'gesture'>('name');
+  const [isPresetSaving, setIsPresetSaving] = useState(false);
+
+  // 预设识别相关状态
+  const webcamCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isRecognizingPreset, setIsRecognizingPreset] = useState(false);
 
   const handleSend = async () => {
     if (!prompt.trim()) return;
@@ -54,6 +68,97 @@ export const Interface = () => {
           const url = URL.createObjectURL(file);
           setTexture(key, url);
           addLog(`已更新${key === 'floor' ? '地板' : key === 'wall' ? '墙面' : key === 'desk' ? '桌面' : key === 'windowView' ? '窗外' : '投影'}材质`);
+      }
+  };
+
+  // 预设保存相关函数
+  const capturePresetFrame = (canvasRef: React.RefObject<HTMLCanvasElement>, videoRef: React.RefObject<HTMLVideoElement>): string | null => {
+      if (videoRef.current && canvasRef.current) {
+          const context = canvasRef.current.getContext('2d');
+          if (context) {
+              context.drawImage(videoRef.current, 0, 0, 640, 480);
+              return canvasRef.current.toDataURL('image/jpeg', 0.8);
+          }
+      }
+      return null;
+  };
+
+  const handleSavePreset = async () => {
+      if (!presetName || !capturedFaceImage || !capturedGestureImage) {
+          addLog('请完成所有步骤：填写名称、拍摄人脸、拍摄手势');
+          return;
+      }
+
+      setIsPresetSaving(true);
+      addLog('正在保存预设...');
+
+      try {
+          // 获取当前所有设备的开关状态和具体参数
+          const deviceStates = devices.map(d => ({
+              deviceId: d.id,
+              status: d.status,
+              value: d.value
+          }));
+
+          // 调用API保存预设
+          const { api } = await import('../services/api');
+          await api.savePreset(presetName, capturedFaceImage, capturedGestureImage, deviceStates);
+
+          addLog('预设保存成功！');
+          setIsPresetOpen(false);
+          setPresetName('');
+          setCapturedFaceImage(null);
+          setCapturedGestureImage(null);
+          setPresetStep('name');
+      } catch (error: any) {
+          addLog(`预设保存失败: ${error.message}`);
+      } finally {
+          setIsPresetSaving(false);
+      }
+  };
+
+  // 识别并应用预设
+  const recognizeAndApplyPreset = async () => {
+      if (!videoRef.current || !webcamCanvasRef.current) return;
+
+      setIsRecognizingPreset(true);
+      addLog('正在识别预设...');
+
+      try {
+          // 拍摄当前帧
+          const context = webcamCanvasRef.current.getContext('2d');
+          if (context && videoRef.current) {
+              context.drawImage(videoRef.current, 0, 0, 640, 480);
+              const capturedImage = webcamCanvasRef.current.toDataURL('image/jpeg', 0.8);
+
+              // 调用API识别预设（同时传递人脸和手势）
+              const { api } = await import('../services/api');
+              const preset = await api.recognizePreset(capturedImage, capturedImage);
+
+              // 应用预设到设备
+              if (preset.deviceStates && preset.deviceStates.length > 0) {
+                  // 更新每个设备的状态
+                  for (const deviceState of preset.deviceStates) {
+                      const device = devices.find(d => d.id === deviceState.deviceId);
+                      if (device) {
+                          // 更新状态
+                          if (device.status !== deviceState.status) {
+                              await toggleDevice(deviceState.deviceId);
+                          }
+                          // 更新值
+                          if (deviceState.value !== undefined && device.value !== deviceState.value) {
+                              await setDeviceValue(deviceState.deviceId, deviceState.value);
+                          }
+                      }
+                  }
+
+                  addLog(`识别成功，已切换到 ${preset.userName} 的预设`);
+              }
+          }
+      } catch (error: any) {
+          addLog(`识别预设失败: ${error.message}`);
+      } finally {
+          setIsRecognizingPreset(false);
       }
   };
 
@@ -83,6 +188,36 @@ export const Interface = () => {
     };
   }, [isWebcamOpen, closeWebcam, addLog]);
 
+  // Preset Webcam Logic
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    if (isPresetOpen && presetVideoRef.current && (presetStep === 'face' || presetStep === 'gesture')) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+                stream = s;
+                if (presetVideoRef.current) {
+                    presetVideoRef.current.srcObject = stream;
+                    const playPromise = presetVideoRef.current.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(err => {
+                            console.log("[Preset Webcam] Play interrupted or prevented:", err.message);
+                        });
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Camera access denied for preset:", err);
+                addLog("无法访问摄像头: " + err.message);
+            });
+    }
+
+    return () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    };
+  }, [isPresetOpen, presetStep, addLog]);
+
   const getIcon = (type: DeviceType) => {
     switch(type) {
         case DeviceType.LIGHT: return <Sun size={16} />;
@@ -104,13 +239,13 @@ export const Interface = () => {
                 <span className="text-xs text-slate-400">电源开关</span>
                 <button 
                     onClick={(e) => { e.stopPropagation(); toggleDevice(device.id); }}
-                    className={`p-1.5 rounded-full transition-colors ${device.isOn ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'}`}
+                    className={`p-1.5 rounded-full transition-colors ${device.status ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'}`}
                 >
                     <Power size={14} />
                 </button>
             </div>
 
-            {device.type === DeviceType.AC && device.isOn && (
+            {device.type === DeviceType.AC && device.status && (
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>温度设定</span>
@@ -151,7 +286,7 @@ export const Interface = () => {
                 </div>
             )}
 
-            {device.type === DeviceType.LIGHT && device.isOn && (
+            {device.type === DeviceType.LIGHT && device.status && (
                 <div className="space-y-1">
                     <div className="flex justify-between text-xs text-slate-300">
                         <span>亮度</span>
@@ -388,14 +523,14 @@ export const Interface = () => {
                             className={`p-3 rounded-lg border backdrop-blur-md cursor-pointer transition-all shadow-md ${
                                 isSelected 
                                     ? 'bg-slate-800/90 border-cyan-500 ring-1 ring-cyan-500/50' 
-                                    : d.isOn 
+                                    : d.status 
                                         ? 'bg-cyan-900/30 border-cyan-500/30 hover:bg-cyan-900/50' 
                                         : 'bg-black/40 border-slate-700 hover:bg-slate-800/60'
                             }`}
                             onClick={() => setSelectedDeviceId(isSelected ? null : d.id)}
                         >
                             <div className="flex items-center justify-between">
-                                <span className={`font-semibold text-sm flex items-center gap-2 ${d.isOn ? 'text-cyan-50' : 'text-slate-400'}`}>
+                                <span className={`font-semibold text-sm flex items-center gap-2 ${d.status ? 'text-cyan-50' : 'text-slate-400'}`}>
                                     {getIcon(d.type)} {d.name}
                                 </span>
                                 <div className="flex items-center gap-2">
@@ -480,8 +615,8 @@ export const Interface = () => {
          <div className="p-2 rounded-full bg-slate-800 text-slate-400">
             <Mic size={20} />
          </div>
-         <input 
-            type="text" 
+         <input
+            type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -489,7 +624,7 @@ export const Interface = () => {
             className="flex-1 bg-transparent border-none outline-none text-white px-2 placeholder-slate-500"
             disabled={isProcessing}
          />
-         <button 
+         <button
             onClick={handleSend}
             disabled={isProcessing}
             className={`p-2 rounded-full transition-colors ${isProcessing ? 'bg-slate-700' : 'bg-cyan-600 hover:bg-cyan-500'} text-white`}
@@ -498,12 +633,24 @@ export const Interface = () => {
          </button>
       </div>
 
+      {/* Bottom Right: Create Preset Button */}
+      <div className="absolute bottom-6 right-6 pointer-events-auto z-50">
+          <button
+              onClick={() => setIsPresetOpen(!isPresetOpen)}
+              className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all hover:scale-105"
+              title="创建预设"
+          >
+              <Users size={18} />
+              <span className="text-sm font-bold">创建预设</span>
+          </button>
+      </div>
+
       {/* Webcam Modal */}
       {isWebcamOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 pointer-events-auto">
             <div className="relative bg-slate-900 border border-cyan-500 p-1 rounded-lg shadow-[0_0_50px_rgba(6,182,212,0.3)] max-w-4xl w-full aspect-video">
                 <video ref={videoRef} className="w-full h-full object-cover rounded" />
-                <button 
+                <button
                     onClick={closeWebcam}
                     className="absolute top-4 right-4 bg-red-600 hover:bg-red-500 text-white p-2 rounded-full z-10"
                 >
@@ -525,8 +672,171 @@ export const Interface = () => {
                          </div>
                     </div>
                 </div>
+                {/* Recognize Preset Button */}
+                <button
+                    onClick={recognizeAndApplyPreset}
+                    disabled={isRecognizingPreset}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white px-6 py-3 rounded-full font-bold shadow-lg z-10 flex items-center gap-2 transition-all"
+                >
+                    {isRecognizingPreset ? (
+                        <>
+                            <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                            <span>识别中...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Users size={18} />
+                            <span>识别并应用预设</span>
+                        </>
+                    )}
+                </button>
+                <canvas ref={webcamCanvasRef} width={640} height={480} className="hidden" />
             </div>
         </div>
+      )}
+
+      {/* Preset Modal */}
+      {isPresetOpen && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-md pointer-events-auto">
+              <div className="bg-slate-800 border border-cyan-500 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
+                  {/* Header */}
+                  <div className="p-4 bg-slate-900 border-b border-slate-700 flex justify-between items-center">
+                      <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
+                          <Users size={20} />
+                          创建场景预设
+                      </h2>
+                      <button onClick={() => setIsPresetOpen(false)} className="text-slate-400 hover:text-white">
+                          <X size={20} />
+                      </button>
+                  </div>
+
+                  {/* Steps Indicator */}
+                  <div className="px-6 py-3 bg-slate-900/50 border-b border-slate-700">
+                      <div className="flex items-center justify-between text-xs">
+                          <div className={`flex items-center gap-2 ${presetStep === 'name' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${presetStep === 'name' ? 'bg-cyan-500' : capturedFaceImage ? 'bg-green-500' : 'bg-slate-600'}`}>
+                                  1
+                              </div>
+                              <span>填写名称</span>
+                          </div>
+                          <div className={`w-12 h-0.5 ${presetStep === 'face' || presetStep === 'gesture' ? 'bg-cyan-500' : 'bg-slate-600'}`}></div>
+                          <div className={`flex items-center gap-2 ${presetStep === 'face' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${presetStep === 'face' ? 'bg-cyan-500' : capturedGestureImage ? 'bg-green-500' : 'bg-slate-600'}`}>
+                                  2
+                              </div>
+                              <span>拍摄人脸</span>
+                          </div>
+                          <div className={`w-12 h-0.5 ${presetStep === 'gesture' ? 'bg-cyan-500' : 'bg-slate-600'}`}></div>
+                          <div className={`flex items-center gap-2 ${presetStep === 'gesture' ? 'text-cyan-400' : 'text-slate-400'}`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${presetStep === 'gesture' ? 'bg-cyan-500' : 'bg-slate-600'}`}>
+                                  3
+                              </div>
+                              <span>拍摄手势</span>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Content Area */}
+                  <div className="p-6 space-y-4">
+                      {/* Step 1: Name Input */}
+                      {presetStep === 'name' && (
+                          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                              <p className="text-sm text-slate-300">为您的场景预设起一个名字：</p>
+                              <input
+                                  type="text"
+                                  value={presetName}
+                                  onChange={(e) => setPresetName(e.target.value)}
+                                  placeholder="例如：阅读模式、观影模式"
+                                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-cyan-500 transition-colors"
+                              />
+                              <button
+                                  onClick={() => setPresetStep('face')}
+                                  disabled={!presetName.trim()}
+                                  className={`w-full py-3 rounded-lg font-bold transition-colors ${presetName.trim() ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
+                              >
+                                  下一步
+                              </button>
+                          </div>
+                      )}
+
+                      {/* Step 2: Face Capture */}
+                      {presetStep === 'face' && (
+                          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                              <p className="text-sm text-slate-300">请拍摄您的人脸照片：</p>
+                              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                                  {!capturedFaceImage ? (
+                                      <>
+                                          <video ref={presetVideoRef} className="w-full h-full object-cover transform scale-x-[-1]" />
+                                          <div className="absolute inset-0 border-2 border-cyan-500/30 m-8 rounded-lg pointer-events-none" />
+                                      </>
+                                  ) : (
+                                      <img src={capturedFaceImage} alt="Face" className="w-full h-full object-cover transform scale-x-[-1]" />
+                                  )}
+                              </div>
+                              <canvas ref={presetCanvasRef} width={640} height={480} className="hidden" />
+                              <div className="flex gap-2">
+                                  <button
+                                      onClick={() => {
+                                          const image = capturePresetFrame(presetCanvasRef, presetVideoRef);
+                                          if (image) setCapturedFaceImage(image);
+                                      }}
+                                      disabled={isPresetSaving}
+                                      className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 rounded-lg text-white font-bold transition-colors"
+                                  >
+                                      {capturedFaceImage ? '重拍' : '拍摄人脸'}
+                                  </button>
+                                  <button
+                                      onClick={() => {
+                                          if (capturedFaceImage) setPresetStep('gesture');
+                                      }}
+                                      disabled={!capturedFaceImage}
+                                      className={`flex-1 py-3 rounded-lg font-bold transition-colors ${capturedFaceImage ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
+                                  >
+                                      下一步
+                                  </button>
+                              </div>
+                          </div>
+                      )}
+
+                      {/* Step 3: Gesture Capture */}
+                      {presetStep === 'gesture' && (
+                          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                              <p className="text-sm text-slate-300">请拍摄您的手势照片：</p>
+                              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                                  {!capturedGestureImage ? (
+                                      <>
+                                          <video ref={presetVideoRef} className="w-full h-full object-cover transform scale-x-[-1]" />
+                                          <div className="absolute inset-0 border-2 border-cyan-500/30 m-8 rounded-lg pointer-events-none" />
+                                      </>
+                                  ) : (
+                                      <img src={capturedGestureImage} alt="Gesture" className="w-full h-full object-cover transform scale-x-[-1]" />
+                                  )}
+                              </div>
+                              <canvas ref={presetCanvasRef} width={640} height={480} className="hidden" />
+                              <div className="flex gap-2">
+                                  <button
+                                      onClick={() => {
+                                          const image = capturePresetFrame(presetCanvasRef, presetVideoRef);
+                                          if (image) setCapturedGestureImage(image);
+                                      }}
+                                      disabled={isPresetSaving}
+                                      className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 rounded-lg text-white font-bold transition-colors"
+                                  >
+                                      {capturedGestureImage ? '重拍' : '拍摄手势'}
+                                  </button>
+                                  <button
+                                      onClick={handleSavePreset}
+                                      disabled={!capturedGestureImage || isPresetSaving}
+                                      className={`flex-1 py-3 rounded-lg font-bold transition-colors ${capturedGestureImage && !isPresetSaving ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}
+                                  >
+                                      {isPresetSaving ? '保存中...' : '保存预设'}
+                                  </button>
+                              </div>
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
       )}
 
     </div>

@@ -5,7 +5,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const parseSmartHomeCommand = async (command: string, currentDevices: IotDevice[]) => {
   try {
-    const deviceListString = currentDevices.map(d => `${d.name} (ID: ${d.id}, State: ${d.isOn ? 'ON' : 'OFF'}, Value: ${d.value})`).join('\n');
+    const deviceListString = currentDevices.map(d => `${d.name} (ID: ${d.id}, State: ${d.status ? 'ON' : 'OFF'}, Value: ${d.value})`).join('\n');
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -19,7 +19,7 @@ export const parseSmartHomeCommand = async (command: string, currentDevices: Iot
       1. Analyze the command.
       2. Return a JSON array of objects representing the NEW state for affected devices.
       3. Only include devices that need to change.
-      4. If "turn on AC" is said, set isOn to true.
+      4. If "turn on AC" is said, set status to true.
       5. Do not include explanation, just the JSON.`,
       config: {
         responseMimeType: "application/json",
@@ -29,7 +29,7 @@ export const parseSmartHomeCommand = async (command: string, currentDevices: Iot
             type: Type.OBJECT,
             properties: {
               id: { type: Type.STRING, description: "The exact ID of the device" },
-              isOn: { type: Type.BOOLEAN, description: "Whether the device should be on or off" },
+              status: { type: Type.BOOLEAN, description: "Whether the device should be on or off" },
               value: { type: Type.STRING, description: "Optional new value (e.g. temperature, height)" }
             },
             required: ["id"]

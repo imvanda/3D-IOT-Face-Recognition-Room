@@ -102,7 +102,7 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
   useCursor(hovered);
 
   useFrame((state, delta) => {
-    if (device.isOn && device.type === DeviceType.ROBOT && mesh.current) {
+    if (device.status && device.type === DeviceType.ROBOT && mesh.current) {
         const t = state.clock.elapsedTime;
         mesh.current.position.x = device.position[0] + Math.sin(t) * 2;
         mesh.current.position.z = device.position[2] + Math.cos(t * 0.5) * 1;
@@ -140,9 +140,9 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
              </Cylinder>
              <Cylinder args={[0.7, 0.7, 0.08, 64]} position={[0, -0.02, 0]}>
                 <meshStandardMaterial 
-                    color={device.isOn ? "#fff" : "#ddd"} 
-                    emissive={device.isOn ? "#fffbeb" : "#000"} 
-                    emissiveIntensity={device.isOn ? (device.value as number / 50) : 0} 
+                    color={device.status ? "#fff" : "#ddd"} 
+                    emissive={device.status ? "#fffbeb" : "#000"} 
+                    emissiveIntensity={device.status ? (device.value as number / 50) : 0} 
                     toneMapped={false}
                 />
              </Cylinder>
@@ -157,7 +157,7 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
             <Box args={[1.6, 0.05, 0.4]} position={[0, -0.18, 0]} rotation={[Math.PI/12, 0, 0]}>
                  <meshStandardMaterial color="#e2e8f0" />
             </Box>
-             {device.isOn && (
+             {device.status && (
                 <Text position={[0.6, 0.1, 0.21]} fontSize={0.1} color="#4ade80">
                   {device.value}°C
                 </Text>
@@ -194,7 +194,7 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
             </Cylinder>
             {/* Light Indicator */}
             <Sphere args={[0.01]} position={[0.15, 0.05, 0.2]}>
-                 <meshBasicMaterial color={device.isOn ? "#4ade80" : "#ef4444"} />
+                 <meshBasicMaterial color={device.status ? "#4ade80" : "#ef4444"} />
             </Sphere>
           </group>
         );
@@ -215,7 +215,7 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
                    <meshStandardMaterial color="#334155" />
                </Cylinder>
                <Sphere args={[0.02]} position={[0, 0.7, 0.17]}>
-                   <meshBasicMaterial color={device.isOn ? "#4ade80" : "#ef4444"} />
+                   <meshBasicMaterial color={device.status ? "#4ade80" : "#ef4444"} />
                </Sphere>
            </group>
         );
@@ -228,12 +228,12 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
                  <Cylinder args={[0.04, 0.04, 0.02, 16]} position={[0, 0.31, 0]}>
                       <meshStandardMaterial color="#cbd5e1" />
                  </Cylinder>
-                 {device.isOn && (
-                     <mesh position={[0, 0.5, 0]}>
-                         <sphereGeometry args={[0.1, 16, 16]} />
-                         <meshBasicMaterial color="white" transparent opacity={0.3} />
-                     </mesh>
-                 )}
+                 {device.status && (
+                    <mesh position={[0, 0.5, 0]}>
+                        <sphereGeometry args={[0.1, 16, 16]} />
+                        <meshBasicMaterial color="white" transparent opacity={0.3} />
+                    </mesh>
+                )}
                  <Cylinder args={[0.15, 0.15, 0.05, 32]} position={[0, 0.025, 0]}>
                       <meshStandardMaterial color="#e2e8f0" />
                  </Cylinder>
@@ -341,7 +341,7 @@ const DeviceModel: React.FC<{ device: IotDevice }> = ({ device }) => {
       default: 
         return (
           <RoundedBox args={[0.5, 0.8, 0.5]} radius={0.05}>
-             <meshStandardMaterial color={device.isOn ? "#4ade80" : "#cbd5e1"} />
+             <meshStandardMaterial color={device.status ? "#4ade80" : "#cbd5e1"} />
              <Text position={[0, 0.2, 0.26]} fontSize={0.1} color="black">
                  {device.name}
              </Text>
@@ -374,7 +374,7 @@ export const Room = () => {
   const curtain = devices.find(d => d.type === DeviceType.CURTAIN);
   const projector = devices.find(d => d.type === DeviceType.PROJECTOR);
   
-  const ceilingIntensity = (ceilingLight?.isOn && typeof ceilingLight.value === 'number') 
+  const ceilingIntensity = (ceilingLight?.status && typeof ceilingLight.value === 'number') 
     ? ceilingLight.value / 50 
     : 0;
 
@@ -383,7 +383,7 @@ export const Room = () => {
   const sunIntensity = 2 * curtainOpenPercent;
 
   // Projector Light Logic
-  const isProjectorActive = projector?.isOn;
+  const isProjectorActive = projector?.status;
   // Ambient glow from screen - Only if projector is ON
   const projectorLightIntensity = isProjectorActive ? 2 : 0;
 

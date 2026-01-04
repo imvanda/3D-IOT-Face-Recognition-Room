@@ -1,23 +1,23 @@
 [
     {
-        "id": "51420aa4fc5d1297",
+        "id": "9951a906284ccf81",
         "type": "tab",
         "label": "IoT Room - Final",
         "disabled": false,
         "info": "最终版本：前端控制 + ThingsBoard双向同步 + MQTT广播"
     },
     {
-        "id": "bf1a359e0a3d0685",
+        "id": "0a98952bc8ec6b74",
         "type": "group",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "初始化",
         "style": {
             "label": true
         },
         "nodes": [
-            "3dd2f704b7368256",
-            "d548d679187bd1a6",
-            "eabfc547de960910"
+            "7e40661af8b98586",
+            "95dbec575851a9f2",
+            "e615cfc30d0d9d21"
         ],
         "x": 4,
         "y": 859,
@@ -25,26 +25,26 @@
         "h": 162
     },
     {
-        "id": "e98819eb72179442",
+        "id": "054476eccc4d0aae",
         "type": "group",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "HTTP API",
         "style": {
             "label": true
         },
         "nodes": [
-            "07373c3693450725",
-            "e3c19149bafae916",
-            "58f07b7a2bd52676",
-            "c66c381ce75bcafe",
-            "05593481f109752e",
-            "42745c13b58dd018",
-            "97ce77b8487f2975",
-            "ba16e9c3be03cd57",
-            "29e155fe4de4670b",
-            "7c659212ba343f30",
-            "f2ac46ae9d1527d6",
-            "7735c672b3994040"
+            "fb859771175dd38d",
+            "0e878cbbca00ad02",
+            "a94c9801f02b554b",
+            "1bed49c12cd7f7cf",
+            "8079a7a5506e1247",
+            "412be5eda2ab2d47",
+            "8194a98ad3df60c8",
+            "b1d9c64dc4801dd6",
+            "194e46f5a691b198",
+            "22042233205203f2",
+            "1826d5320c2d4563",
+            "31b4e16f867ad64b"
         ],
         "x": 24,
         "y": 59,
@@ -52,18 +52,18 @@
         "h": 329.5
     },
     {
-        "id": "8e26d0784fafe767",
+        "id": "b2235641e1fce360",
         "type": "group",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "MQTT",
         "style": {
             "label": true
         },
         "nodes": [
-            "c68fda8a21e98179",
-            "58fd23059088b987",
-            "b6fc9f508bbac494",
-            "85a56c0cb0118a3e"
+            "e204a5eed9496b1a",
+            "22e7a9b6cfe175fc",
+            "e1258bccd81ac658",
+            "8c5a246bd6d7085b"
         ],
         "x": 14,
         "y": 379,
@@ -71,20 +71,20 @@
         "h": 302
     },
     {
-        "id": "714a7f1ccbec3c79",
+        "id": "a473cab1c7f9e5c8",
         "type": "group",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "认证",
         "style": {
             "label": true
         },
         "nodes": [
-            "2edf30d830accbd9",
-            "948b2b117dfb128d",
-            "302d71c1ae87b938",
-            "c6c12c2690eac2c4",
-            "2548be6b9d2ef630",
-            "43addea5bdc7e1e6"
+            "a98881cc48b8a40b",
+            "e70ff83a76bbb275",
+            "28ab59a36508b345",
+            "6cdf6c16aa1bb7b8",
+            "869f70c83bfd0a11",
+            "3634b2a8995e1870"
         ],
         "x": 14,
         "y": 679,
@@ -111,17 +111,17 @@
         "broker": "thingsboard",
         "port": "1883",
         "clientid": "node-red-tb-client-DISABLED",
-        "autoConnect": false,
+        "autoConnect": true,
         "usetls": false,
         "protocolVersion": "4",
         "keepalive": "60",
         "cleansession": true
     },
     {
-        "id": "07373c3693450725",
+        "id": "fb859771175dd38d",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "GET /devices",
         "url": "/api/v1/devices",
         "method": "get",
@@ -129,25 +129,25 @@
         "y": 100,
         "wires": [
             [
-                "58f07b7a2bd52676"
+                "a94c9801f02b554b"
             ]
         ]
     },
     {
-        "id": "e3c19149bafae916",
+        "id": "0e878cbbca00ad02",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Response",
         "x": 680,
         "y": 100,
         "wires": []
     },
     {
-        "id": "58f07b7a2bd52676",
+        "id": "a94c9801f02b554b",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Return Devices",
         "func": "console.log('[GET /devices] Request received');\n\nmsg.payload = [\n    { id: 'light-main', name: '智能吸顶灯', type: 'LIGHT', status: false, position: [0, 2.9, 0], color: '#ffffff', value: 80 },\n    { id: 'ac', name: '空调', type: 'AC', status: false, position: [-4.8, 2.4, 0], rotation: [0, 1.5707963267948966, 0], value: 24 },\n    { id: 'curtain', name: '智能窗帘', type: 'CURTAIN', status: false, position: [4.9, 1.5, 0], rotation: [0, 1.5707963267948966, 0], value: 0 },\n    { id: 'desk', name: '升降桌', type: 'DESK', status: false, position: [0, 0, 0], rotation: [0, -1.5707963267948966, 0], value: 75 },\n    { id: 'projector', name: '投影仪', type: 'PROJECTOR', status: false, position: [0, 2.8, 2], rotation: [0, 3.141592653589793, 0] },\n    { id: 'purifier', name: '空气净化器', type: 'PURIFIER', status: false, position: [-4.2, 0, -4.2], rotation: [0, 0.7853981633974483, 0], value: 'Auto' },\n    { id: 'humidifier', name: '加湿器', type: 'HUMIDIFIER', status: false, position: [-4.5, 0, 2.5], rotation: [0, 1.5707963267948966, 0] },\n    { id: 'robot', name: '扫地机器人', type: 'ROBOT', status: false, position: [3, 0.1, -3] },\n    { id: 'sensor', name: '温湿度传感器', type: 'SENSOR', status: true, position: [-4.95, 1.5, 1], rotation: [0, 1.5707963267948966, 0], value: '24°C / 45%' },\n    { id: 'cam-1', name: '摄像头(前左)', type: 'CAMERA', status: true, position: [-4.5, 2.8, -4.5], rotation: [0, -0.7853981633974483, -0.5235987755982988] },\n    { id: 'cam-2', name: '摄像头(前右)', type: 'CAMERA', status: true, position: [4.5, 2.8, -4.5], rotation: [0, 0.7853981633974483, -0.5235987755982988] },\n    { id: 'cam-3', name: '摄像头(后左)', type: 'CAMERA', status: true, position: [-4.5, 2.8, 4.5], rotation: [0, -2.356194490192345, -0.5235987755982988] },\n    { id: 'cam-4', name: '摄像头(后右)', type: 'CAMERA', status: true, position: [4.5, 2.8, 4.5], rotation: [0, 2.35619490192345, -0.5235987755982988] }\n];\n\nconsole.log('[GET /devices] Returning', msg.payload.length, 'devices');\nreturn msg;",
         "outputs": 1,
@@ -155,14 +155,14 @@
         "y": 100,
         "wires": [
             [
-                "e3c19149bafae916"
+                "0e878cbbca00ad02"
             ]
         ]
     },
     {
-        "id": "91ef8aa5c20a5cad",
+        "id": "ca9b4eeda453eb0f",
         "type": "function",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "Initialize All Devices on TB",
         "func": "const deviceTokens = context.global.get('deviceTokens');\nconst devices = msg.payload;\n\nif (!deviceTokens || !devices) return null;\n\nconsole.log('[INIT] Initializing all devices on ThingsBoard...');\n\nconst messages = devices.map(device => {\n    const token = deviceTokens[device.id];\n    if (!token) return null;\n\n    let attributes = { \n        status: device.status, \n        name: device.name,\n        type: device.type\n    };\n    \n    // Add device specific attributes\n    if (device.value !== undefined) {\n        attributes.value = device.value;\n        if (device.id === 'light-main') attributes.brightness = device.value;\n        if (device.id === 'ac') attributes.temperature = device.value;\n        if (device.id === 'curtain') attributes.openPercentage = device.value;\n        if (device.id === 'desk') attributes.height = device.value;\n    }\n\n    // Telemetry payload\n    let telemetry = { \n        status: device.status,\n        lastSeen: Date.now()\n    };\n    \n    if (device.value !== undefined) {\n        telemetry.value = device.value;\n        if (device.id === 'light-main') telemetry.brightness = device.value;\n        if (device.id === 'ac') telemetry.temperature = device.value;\n        if (device.id === 'curtain') telemetry.openPercentage = device.value;\n        if (device.id === 'desk') telemetry.height = device.value;\n    }\n\n    return [\n        {\n            url: `http://thingsboard:9090/api/v1/${token}/attributes`,\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            payload: attributes\n        },\n        {\n            url: `http://thingsboard:9090/api/v1/${token}/telemetry`,\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            payload: telemetry\n        }\n    ];\n}).flat().filter(m => m !== null);\n\nreturn messages;",
         "outputs": 1,
@@ -170,15 +170,15 @@
         "y": 140,
         "wires": [
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ]
         ]
     },
     {
-        "id": "c66c381ce75bcafe",
+        "id": "1bed49c12cd7f7cf",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "POST /toggle",
         "url": "/api/v1/devices/:id/toggle",
         "method": "post",
@@ -186,25 +186,25 @@
         "y": 180,
         "wires": [
             [
-                "42745c13b58dd018"
+                "412be5eda2ab2d47"
             ]
         ]
     },
     {
-        "id": "05593481f109752e",
+        "id": "8079a7a5506e1247",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Response",
         "x": 680,
         "y": 180,
         "wires": []
     },
     {
-        "id": "42745c13b58dd018",
+        "id": "412be5eda2ab2d47",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Toggle Device Logic",
         "func": "const deviceId = msg.req.params.id;\nconst status = msg.payload?.status !== undefined ? msg.payload.status : true;\n\nconst deviceTokens = context.global.get('deviceTokens');\nconst deviceToken = deviceTokens ? deviceTokens[deviceId] : null;\n\nif (!deviceToken) {\n    console.error('[POST /toggle] ERROR: Unknown device:', deviceId);\n    msg.statusCode = 404;\n    msg.payload = { message: 'Device not found' };\n    return msg;\n}\n\nconsole.log('========== TOGGLE DEVICE ==========');\nconsole.log('[POST /toggle] Device ID:', deviceId);\nconsole.log('[POST /toggle] New state:', status ? 'ON' : 'OFF');\n\n// Create separate messages for other outputs\nconst mqttMsg = {\n    payload: { deviceId: deviceId, status: status },\n    topic: 'iot/room/devices'\n};\nconst tbMsg = {\n    url: `http://thingsboard:9090/api/v1/${deviceToken}/attributes`,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    payload: { status: status },\n    deviceToken: deviceToken\n};\n\n// Also send telemetry\nconst tbTelemetry = {\n    url: `http://thingsboard:9090/api/v1/${deviceToken}/telemetry`,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    payload: { status: status, timestamp: Date.now() },\n    deviceToken: deviceToken\n};\n\nconsole.log('[POST /toggle] → MQTT Frontend:', JSON.stringify(mqttMsg.payload));\nconsole.log('[POST /toggle] → ThingsBoard Attributes:', tbMsg.url);\nconsole.log('[POST /toggle] → ThingsBoard Telemetry:', tbTelemetry.url);\nconsole.log('[POST /toggle] =================================');\n\n// Reuse original msg for HTTP response to preserve msg.res\nmsg.payload = { id: deviceId, status: status };\n\nreturn [msg, mqttMsg, tbMsg, tbTelemetry];",
         "outputs": 4,
@@ -212,24 +212,24 @@
         "y": 180,
         "wires": [
             [
-                "05593481f109752e"
+                "8079a7a5506e1247"
             ],
             [
-                "c68fda8a21e98179"
+                "e204a5eed9496b1a"
             ],
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ],
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ]
         ]
     },
     {
-        "id": "97ce77b8487f2975",
+        "id": "8194a98ad3df60c8",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "PUT /value",
         "url": "/api/v1/devices/:id/value",
         "method": "put",
@@ -237,25 +237,25 @@
         "y": 260,
         "wires": [
             [
-                "29e155fe4de4670b"
+                "194e46f5a691b198"
             ]
         ]
     },
     {
-        "id": "ba16e9c3be03cd57",
+        "id": "b1d9c64dc4801dd6",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Response",
         "x": 680,
         "y": 260,
         "wires": []
     },
     {
-        "id": "29e155fe4de4670b",
+        "id": "194e46f5a691b198",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Update Value Logic",
         "func": "const deviceId = msg.req.params.id;\nconst value = msg.payload?.value;\n\nif (value === undefined || value === null) {\n    console.error('[PUT /value] ERROR: Missing value');\n    msg.statusCode = 400;\n    msg.payload = { message: 'Missing value' };\n    return msg;\n}\n\nconst deviceTokens = context.global.get('deviceTokens');\nconst deviceToken = deviceTokens ? deviceTokens[deviceId] : null;\n\nif (!deviceToken) {\n    console.error('[PUT /value] ERROR: Unknown device:', deviceId);\n    msg.statusCode = 404;\n    msg.payload = { message: 'Device not found' };\n    return msg;\n}\n\nlet attributes = {};\nlet telemetry = { timestamp: Date.now() };\n\nif (typeof value === 'boolean') {\n    attributes = { status: value };\n    telemetry.status = value;\n    } else if (typeof value === 'number') {\n    if (deviceId === 'light-main') {\n        attributes = { brightness: value };\n        telemetry.brightness = value;\n    } else if (deviceId === 'ac') {\n        attributes = { temperature: value };\n        telemetry.temperature = value;\n    } else if (deviceId === 'curtain') {\n        attributes = { openPercentage: value };\n        telemetry.openPercentage = value;\n    } else if (deviceId === 'desk') {\n        attributes = { height: value };\n        telemetry.height = value;\n    } else {\n        attributes = { value: value };\n        telemetry.value = value;\n    }\n} else {\n    attributes = { value: value };\n    telemetry.value = value;\n}\n\nconsole.log('========== UPDATE VALUE ==========');\nconsole.log('[PUT /value] Device ID:', deviceId);\nconsole.log('[PUT /value] Value:', value);\n\n// Create separate messages for other outputs\nconst mqttMsg = {\n    payload: { deviceId: deviceId, value: value },\n    topic: 'iot/room/devices'\n};\n\nconst tbAttrMsg = {\n    url: `http://thingsboard:9090/api/v1/${deviceToken}/attributes`,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    payload: attributes,\n    deviceToken: deviceToken\n};\n\nconst tbTelemetryMsg = {\n    url: `http://thingsboard:9090/api/v1/${deviceToken}/telemetry`,\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    payload: telemetry,\n    deviceToken: deviceToken\n};\n\n// Reuse original msg for HTTP response\nmsg.payload = { id: deviceId, value: value };\n\nreturn [msg, mqttMsg, tbAttrMsg, tbTelemetryMsg];",
         "outputs": 4,
@@ -263,24 +263,24 @@
         "y": 260,
         "wires": [
             [
-                "ba16e9c3be03cd57"
+                "b1d9c64dc4801dd6"
             ],
             [
-                "c68fda8a21e98179"
+                "e204a5eed9496b1a"
             ],
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ],
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ]
         ]
     },
     {
-        "id": "7c659212ba343f30",
+        "id": "22042233205203f2",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "POST /batch",
         "url": "/api/v1/devices/batch",
         "method": "post",
@@ -288,25 +288,25 @@
         "y": 340,
         "wires": [
             [
-                "7735c672b3994040"
+                "31b4e16f867ad64b"
             ]
         ]
     },
     {
-        "id": "f2ac46ae9d1527d6",
+        "id": "1826d5320c2d4563",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Response",
         "x": 680,
         "y": 340,
         "wires": []
     },
     {
-        "id": "7735c672b3994040",
+        "id": "31b4e16f867ad64b",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "e98819eb72179442",
+        "z": "9951a906284ccf81",
+        "g": "054476eccc4d0aae",
         "name": "Batch Update Logic",
         "func": "const updates = msg.payload;\nconst deviceTokens = context.global.get('deviceTokens');\n\nif (!Array.isArray(updates) || updates.length === 0) {\n    console.error('[POST /batch] ERROR: Invalid updates');\n    msg.statusCode = 400;\n    msg.payload = { message: 'Invalid updates' };\n    return msg;\n}\n\nconsole.log('========== BATCH UPDATE ==========');\nconsole.log('[POST /batch] Updates:', updates.length, 'devices');\n\n// Create separate messages for other outputs\nconst mqttMsg = {\n    payload: updates,\n    topic: 'iot/room/devices'\n};\n\nconst tbMessages = updates.map(update => {\n    const deviceToken = deviceTokens ? deviceTokens[update.id] : null;\n    if (!deviceToken) {\n        console.error('[POST /batch] Unknown device:', update.id);\n        return null;\n    }\n    \n    let attributes = {};\n    let telemetry = { timestamp: Date.now() };\n    \n    if (update.status !== undefined) {\n        attributes = { status: update.status };\n        telemetry.status = update.status;\n        } else if (update.value !== undefined) {\n        const deviceId = update.id;\n        const value = update.value;\n        \n        telemetry.value = value;\n        \n        if (typeof value === 'number') {\n            if (deviceId === 'light-main') {\n                attributes = { brightness: value };\n                telemetry.brightness = value;\n            } else if (deviceId === 'ac') {\n                attributes = { temperature: value };\n                telemetry.temperature = value;\n            } else if (deviceId === 'curtain') {\n                attributes = { openPercentage: value };\n                telemetry.openPercentage = value;\n            } else if (deviceId === 'desk') {\n                attributes = { height: value };\n                telemetry.height = value;\n            } else {\n                attributes = { value: value };\n            }\n        } else {\n            attributes = { value: value };\n        }\n    }\n\n    return [\n        {\n            url: `http://thingsboard:9090/api/v1/${deviceToken}/attributes`,\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            payload: attributes\n        },\n        {\n            url: `http://thingsboard:9090/api/v1/${deviceToken}/telemetry`,\n            method: 'POST',\n            headers: { 'Content-Type': 'application/json' },\n            payload: telemetry\n        }\n    ];\n}).flat().filter(m => m !== null);\n\n// Reuse original msg for HTTP response\nmsg.payload = { success: true, updated: updates.length };\n\nreturn [msg, mqttMsg, tbMessages];",
         "outputs": 3,
@@ -314,21 +314,21 @@
         "y": 340,
         "wires": [
             [
-                "f2ac46ae9d1527d6"
+                "1826d5320c2d4563"
             ],
             [
-                "c68fda8a21e98179"
+                "e204a5eed9496b1a"
             ],
             [
-                "f139abb7ef804e35"
+                "d261cd5462b7360b"
             ]
         ]
     },
     {
-        "id": "c68fda8a21e98179",
+        "id": "e204a5eed9496b1a",
         "type": "mqtt out",
-        "z": "51420aa4fc5d1297",
-        "g": "8e26d0784fafe767",
+        "z": "9951a906284ccf81",
+        "g": "b2235641e1fce360",
         "name": "To Frontend (MQTT)",
         "topic": "iot/room/devices",
         "qos": "0",
@@ -339,9 +339,9 @@
         "wires": []
     },
     {
-        "id": "f139abb7ef804e35",
+        "id": "d261cd5462b7360b",
         "type": "function",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "Prepare TB Request",
         "func": "// 确保payload是对象格式，Node-RED会自动序列化为JSON\nif (typeof msg.payload === 'string') {\n    try {\n        msg.payload = JSON.parse(msg.payload);\n    } catch (e) {\n        console.error('[TB] Failed to parse payload string:', e);\n        return null;\n    }\n}\n\n// 处理数组类型的输入（来自 batch update）\nif (Array.isArray(msg)) {\n    // 如果是数组，直接返回数组，让后续节点逐个处理（如果有Split节点）\n    // 或者我们可以返回多条消息\n    // Node-RED Function 节点支持返回数组的数组来发送多条消息到同一个输出\n    // 例如 return [[msg1, msg2, msg3]];\n    // 但这里输入已经是单条消息（可能包含payload是数组）\n    // 让我们检查一下上游是怎么传过来的\n    // 如果上游是 [httpMsg, mqttMsg, tbMessages]\n    // tbMessages 是数组\n    // 那么这里 msg 就是 tbMessages 中的一个元素？\n    // 不，如果上游返回 [msg1, msg2, [m1, m2]]，第三个输出收到的是数组 [m1, m2]\n    // 所以我们需要把数组拆开\n    return msg.map(m => m);\n}\n\n// 如果 msg 本身是数组（直接传入了数组）\nif (Array.isArray(msg.payload) && msg.url === undefined) {\n     // 这种情况不应该发生，除非逻辑错误\n     return null;\n}\n\n// 确保URL和method存在\nif (!msg.url || !msg.method) {\n    console.error('[TB] Missing url or method');\n    return null;\n}\n\nconsole.log('[TB] Request URL:', msg.url);\nconsole.log('[TB] Request Method:', msg.method);\nconsole.log('[TB] Request Payload:', JSON.stringify(msg.payload));\n\nreturn msg;",
         "outputs": 1,
@@ -349,14 +349,14 @@
         "y": 500,
         "wires": [
             [
-                "186f46b51482564e"
+                "5bd051c03cafada0"
             ]
         ]
     },
     {
-        "id": "186f46b51482564e",
+        "id": "5bd051c03cafada0",
         "type": "http request",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "To ThingsBoard (HTTP)",
         "method": "use",
         "ret": "txt",
@@ -374,15 +374,15 @@
         "y": 500,
         "wires": [
             [
-                "13966836a285ba52",
-                "5dc19d7ddd66a759"
+                "484bafa2db1fd6f0",
+                "073a437fd7a14cca"
             ]
         ]
     },
     {
-        "id": "13966836a285ba52",
+        "id": "484bafa2db1fd6f0",
         "type": "function",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "Handle TB Response",
         "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    console.log('[TB] ✔ Success:', msg.statusCode, msg.payload);\n} else {\n    console.error('[TB] ✘ Error:', msg.statusCode, msg.payload);\n}\nreturn null;",
         "outputs": 0,
@@ -391,9 +391,9 @@
         "wires": []
     },
     {
-        "id": "5dc19d7ddd66a759",
+        "id": "073a437fd7a14cca",
         "type": "debug",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "TB Response",
         "active": true,
         "tosidebar": true,
@@ -408,9 +408,9 @@
         "wires": []
     },
     {
-        "id": "35bf9256794752fc",
+        "id": "080311ecf9d0f976",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
+        "z": "9951a906284ccf81",
         "name": "From ThingsBoard (HTTP)",
         "url": "/api/v1/tb/callback",
         "method": "post",
@@ -420,15 +420,15 @@
         "y": 600,
         "wires": [
             [
-                "85a56c0cb0118a3e"
+                "8c5a246bd6d7085b"
             ]
         ]
     },
     {
-        "id": "85a56c0cb0118a3e",
+        "id": "8c5a246bd6d7085b",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "8e26d0784fafe767",
+        "z": "9951a906284ccf81",
+        "g": "b2235641e1fce360",
         "name": "Parse TB Attributes",
         "func": "// ========== ThingsBoard 属性变化回调 ==========\n// Payload 格式: { \"deviceId\": \"...\", \"attributes\": { \"status\": true } }\n\nconst data = msg.payload;\nconsole.log('========== TB ATTRIBUTES CALLBACK ==========');\nconsole.log('[TB] Data:', JSON.stringify(data));\n\nconst deviceId = data.deviceId;\nconst attributes = data.attributes;\n\nif (!deviceId || !attributes) {\n    console.error('[TB] ERROR: Missing deviceId or attributes');\n    return null;\n}\n\nconst payload = { deviceId: deviceId };\n\nif (attributes.status !== undefined) payload.status = attributes.status;\nif (attributes.brightness !== undefined) payload.value = attributes.brightness;\nif (attributes.temperature !== undefined) payload.value = attributes.temperature;\nif (attributes.openPercentage !== undefined) payload.value = attributes.openPercentage;\nif (attributes.height !== undefined) payload.value = attributes.height;\nif (attributes.value !== undefined) payload.value = attributes.value;\n\nconst mqttMsg = {\n    payload: payload,\n    topic: 'iot/room/devices'\n};\n\nconsole.log('[TB] → Frontend:', JSON.stringify(mqttMsg.payload));\nconsole.log('[TB] ======================================');\n\nreturn mqttMsg;",
         "outputs": 1,
@@ -436,15 +436,15 @@
         "y": 600,
         "wires": [
             [
-                "c68fda8a21e98179"
+                "e204a5eed9496b1a"
             ]
         ]
     },
     {
-        "id": "58fd23059088b987",
+        "id": "22e7a9b6cfe175fc",
         "type": "mqtt out",
-        "z": "51420aa4fc5d1297",
-        "g": "8e26d0784fafe767",
+        "z": "9951a906284ccf81",
+        "g": "b2235641e1fce360",
         "name": "To ThingsBoard (MQTT)",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -455,10 +455,10 @@
         "wires": []
     },
     {
-        "id": "b6fc9f508bbac494",
+        "id": "e1258bccd81ac658",
         "type": "mqtt in",
-        "z": "51420aa4fc5d1297",
-        "g": "8e26d0784fafe767",
+        "z": "9951a906284ccf81",
+        "g": "b2235641e1fce360",
         "name": "From ThingsBoard (RPC)",
         "topic": "v1/devices/me/rpc/request/+",
         "qos": "0",
@@ -475,10 +475,10 @@
         ]
     },
     {
-        "id": "2edf30d830accbd9",
+        "id": "a98881cc48b8a40b",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "POST /register",
         "url": "/api/v1/auth/register",
         "method": "post",
@@ -486,25 +486,25 @@
         "y": 720,
         "wires": [
             [
-                "302d71c1ae87b938"
+                "28ab59a36508b345"
             ]
         ]
     },
     {
-        "id": "948b2b117dfb128d",
+        "id": "e70ff83a76bbb275",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "Response",
         "x": 630,
         "y": 720,
         "wires": []
     },
     {
-        "id": "302d71c1ae87b938",
+        "id": "28ab59a36508b345",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "Register Logic",
         "func": "const { name, file } = msg.payload || {};\n\nif (!name || !file) {\n    msg.statusCode = 400;\n    msg.payload = { message: 'Missing name or file' };\n    return msg;\n}\n\nmsg.payload = {\n    id: 'user_' + Date.now(),\n    name: name,\n    avatarUrl: file.startsWith('data:') ? file : `data:image/jpeg;base64,${file}`,\n    registeredAt: Date.now()\n};\nreturn msg;",
         "outputs": 1,
@@ -512,15 +512,15 @@
         "y": 720,
         "wires": [
             [
-                "948b2b117dfb128d"
+                "e70ff83a76bbb275"
             ]
         ]
     },
     {
-        "id": "c6c12c2690eac2c4",
+        "id": "6cdf6c16aa1bb7b8",
         "type": "http in",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "POST /recognize",
         "url": "/api/v1/auth/recognize",
         "method": "post",
@@ -528,25 +528,25 @@
         "y": 800,
         "wires": [
             [
-                "43addea5bdc7e1e6"
+                "3634b2a8995e1870"
             ]
         ]
     },
     {
-        "id": "2548be6b9d2ef630",
+        "id": "869f70c83bfd0a11",
         "type": "http response",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "Response",
         "x": 630,
         "y": 800,
         "wires": []
     },
     {
-        "id": "43addea5bdc7e1e6",
+        "id": "3634b2a8995e1870",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "714a7f1ccbec3c79",
+        "z": "9951a906284ccf81",
+        "g": "a473cab1c7f9e5c8",
         "name": "Recognize Logic",
         "func": "const { file } = msg.payload || {};\n\nif (!file) {\n    msg.statusCode = 400;\n    msg.payload = { message: 'Missing file' };\n    return msg;\n}\n\nmsg.statusCode = 404;\nmsg.payload = { message: 'User not recognized' };\nreturn msg;",
         "outputs": 1,
@@ -554,15 +554,15 @@
         "y": 800,
         "wires": [
             [
-                "2548be6b9d2ef630"
+                "869f70c83bfd0a11"
             ]
         ]
     },
     {
-        "id": "eabfc547de960910",
+        "id": "e615cfc30d0d9d21",
         "type": "file in",
-        "z": "51420aa4fc5d1297",
-        "g": "bf1a359e0a3d0685",
+        "z": "9951a906284ccf81",
+        "g": "0a98952bc8ec6b74",
         "name": "Read Tokens File",
         "filename": "/data/tb_device_tokens.json",
         "format": "utf8",
@@ -574,15 +574,15 @@
         "y": 900,
         "wires": [
             [
-                "3dd2f704b7368256"
+                "7e40661af8b98586"
             ]
         ]
     },
     {
-        "id": "3dd2f704b7368256",
+        "id": "7e40661af8b98586",
         "type": "function",
-        "z": "51420aa4fc5d1297",
-        "g": "bf1a359e0a3d0685",
+        "z": "9951a906284ccf81",
+        "g": "0a98952bc8ec6b74",
         "name": "Initialize Device Tokens",
         "func": "const fileContent = msg.payload;\nlet deviceTokensList = [];\ntry {\n    deviceTokensList = JSON.parse(fileContent);\n} catch (e) {\n    console.error('[INIT] Failed to parse tokens file:', e);\n    return null;\n}\n\nconst deviceTokens = {};\ndeviceTokensList.forEach(dt => {\n    deviceTokens[dt.label] = dt.accessToken;\n});\n\nconst tokenToDeviceId = {};\nObject.entries(deviceTokens).forEach(([id, token]) => {\n    tokenToDeviceId[token] = id;\n});\n\ncontext.global.set('deviceTokens', deviceTokens);\ncontext.global.set('tokenToDeviceId', tokenToDeviceId);\n\nconsole.log('[INIT] Device tokens initialized from file, devices:', Object.keys(deviceTokens).length);\n\nreturn msg;",
         "outputs": 1,
@@ -590,15 +590,15 @@
         "y": 900,
         "wires": [
             [
-                "58f07b7a2bd52676"
+                "a94c9801f02b554b"
             ]
         ]
     },
     {
-        "id": "d548d679187bd1a6",
+        "id": "95dbec575851a9f2",
         "type": "inject",
-        "z": "51420aa4fc5d1297",
-        "g": "bf1a359e0a3d0685",
+        "z": "9951a906284ccf81",
+        "g": "0a98952bc8ec6b74",
         "name": "Auto Init",
         "props": [
             {
@@ -623,7 +623,7 @@
         "y": 980,
         "wires": [
             [
-                "eabfc547de960910"
+                "e615cfc30d0d9d21"
             ]
         ]
     }
