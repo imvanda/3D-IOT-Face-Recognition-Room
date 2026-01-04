@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store';
 import { parseSmartHomeCommand } from '../services/geminiService';
-import { Mic, Send, X, Camera, Thermometer, Wind, Monitor, Sun, Settings2, ChevronRight, Power, PaintRoller, Upload, Image as ImageIcon, MousePointerClick, MonitorPlay, Users, LogOut, UserPlus } from 'lucide-react';
+import { Mic, Send, X, Camera, Thermometer, Wind, Monitor, Sun, Settings2, ChevronRight, Power, PaintRoller, Upload, Image as ImageIcon, MousePointerClick, MonitorPlay, Users, LogOut, UserPlus, MicOff } from 'lucide-react';
 import { DeviceType, IotDevice } from '../types';
 import { AuthOverlay } from './AuthOverlay';
 
@@ -25,12 +25,14 @@ export const Interface = () => {
 
   const [prompt, setPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
   const [isDecorateOpen, setIsDecorateOpen] = useState(false);
   const [isPresetOpen, setIsPresetOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const presetVideoRef = useRef<HTMLVideoElement>(null);
   const presetCanvasRef = useRef<HTMLCanvasElement>(null);
+  const recognitionRef = useRef<any>(null);
   const [isDragging, setIsDragging] = useState<Record<string, boolean>>({});
   const [localValues, setLocalValues] = useState<Record<string, number>>({});
 
@@ -45,12 +47,78 @@ export const Interface = () => {
   const webcamCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isRecognizingPreset, setIsRecognizingPreset] = useState(false);
 
-  const handleSend = async () => {
-    if (!prompt.trim()) return;
-    setIsProcessing(true);
-    addLog(`用户: ${prompt}`);
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        addLog("正在聆听... (请说出指令)");
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setPrompt(transcript);
+        recognitionRef.current.finalTranscript = transcript;
+      };
+      
+      recognition.onerror = (event: any) => {
+          console.error("Speech Error:", event.error);
+          setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        // Only auto-send if there's content and it wasn't just stopped manually without speech
+        if (recognitionRef.current?.shouldSend && recognitionRef.current?.finalTranscript) {
+             handleSend(recognitionRef.current.finalTranscript);
+        }
+        recognitionRef.current.shouldSend = false;
+        recognitionRef.current.finalTranscript = '';
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleListening = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!recognitionRef.current) {
+        addLog("您的浏览器不支持语音识别");
+        return;
+    }
+
+    if (isListening) {
+        recognitionRef.current.stop();
+        recognitionRef.current.shouldSend = false;
+    } else {
+        setPrompt('');
+        recognitionRef.current.finalTranscript = '';
+        recognitionRef.current.shouldSend = true;
+        try {
+            recognitionRef.current.start();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+  };
+
+  const handleSend = async (manualText?: string) => {
+    const textToSend = typeof manualText === 'string' ? manualText : prompt;
     
-    const updates = await parseSmartHomeCommand(prompt, devices);
+    if (!textToSend.trim()) return;
+    
+    setIsProcessing(true);
+    addLog(`用户: ${textToSend}`);
+    
+    if (!manualText) setPrompt('');
+
+    const updates = await parseSmartHomeCommand(textToSend, devices);
     
     if (updates.length > 0) {
       updateDevicesFromAI(updates);
@@ -58,7 +126,6 @@ export const Interface = () => {
       addLog('AI: 未检测到设备变更需求');
     }
     
-    setPrompt('');
     setIsProcessing(false);
   };
 
@@ -612,20 +679,30 @@ export const Interface = () => {
 
       {/* Bottom: Chat Input */}
       <div className="pointer-events-auto w-full max-w-2xl mx-auto bg-black/80 backdrop-blur-md rounded-full border border-slate-700 p-2 flex items-center gap-2 shadow-2xl z-50">
-         <div className="p-2 rounded-full bg-slate-800 text-slate-400">
-            <Mic size={20} />
-         </div>
+         <button 
+            onClick={toggleListening}
+            className={`p-2 rounded-full transition-colors relative overflow-hidden ${isListening ? 'bg-red-500 text-white' : 'bg-slate-800 text-slate-400'}`}
+         >
+            {isListening ? (
+                <div className="flex items-center gap-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-20"></span>
+                    <MicOff size={20} />
+                </div>
+            ) : (
+                <Mic size={20} />
+            )}
+         </button>
          <input
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="输入指令 (例如: 打开空调，将桌子升高)"
+            placeholder={isListening ? "正在聆听..." : "输入指令 (例如: 打开空调，将桌子升高)"}
             className="flex-1 bg-transparent border-none outline-none text-white px-2 placeholder-slate-500"
             disabled={isProcessing}
          />
          <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={isProcessing}
             className={`p-2 rounded-full transition-colors ${isProcessing ? 'bg-slate-700' : 'bg-cyan-600 hover:bg-cyan-500'} text-white`}
          >
