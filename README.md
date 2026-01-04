@@ -20,7 +20,9 @@
 ## 📖 项目简介
 <img width="2560" height="1305" alt="image" src="https://github.com/user-attachments/assets/b22438af-b6ad-4732-a701-6d6a64872a27" />
 
-https://github.com/user-attachments/assets/db52d6a0-dde1-4406-8880-217c98bbaca9
+https://github.com/user-attachments/assets/be351ff0-1be1-4f0e-b167-ae2e0bbe0ae9
+
+
 
 
 
