@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. ThingsBoard: 核心物联网平台
   thingsboard:
@@ -47,10 +45,70 @@ services:
     networks:
       - iot-network
 
+  # 4. Django Backend: AI 识别服务 (人脸+手势)
+  django-backend:
+    build:
+      context: ./django-backend
+      dockerfile: Dockerfile
+    container_name: smartroom-django-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./django-backend/media:/app/media
+      - ./mediapipe/hand_landmarker.task:/app/hand_landmarker.task
+    environment:
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=django-insecure-smartroom-dev-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+      - DEEPFACE_MODEL=VGG-Face
+      - DEEPFACE_DISTANCE_METRIC=cosine
+      - FACE_RECOGNITION_THRESHOLD=0.4
+      - MAX_HANDS=2
+      - MIN_DETECTION_CONFIDENCE=0.6
+      - MIN_TRACKING_CONFIDENCE=0.6
+      # MySQL配置
+      - DB_ENGINE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=smartroom
+      - DB_USER=root
+      - DB_PASSWORD=1234
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - iot-network
+
+  # 5. MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: smartroom-mysql
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=smartroom
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    restart: unless-stopped
+    networks:
+      - iot-network
+
 # 卷定义
 volumes:
   tb-data-volume:
   mosquitto-data-volume:
+  mysql-data:
   # node-red 使用了本地目录挂载，此处可删掉命名卷
 
 networks:

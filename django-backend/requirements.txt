@@ -1,0 +1,17 @@
+Django==4.2.11
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+Pillow==10.2.0
+opencv-python==4.8.1.78
+deepface==0.0.90
+mediapipe==0.10.9
+numpy==1.23.5
+gunicorn==21.2.0
+whitenoise==6.6.0
+python-dotenv==1.0.0
+mysqlclient==2.2.4
+
+# TensorFlow和Keras兼容性修复
+tensorflow==2.15.0
+keras==2.15.0
+tf-keras==2.15.0

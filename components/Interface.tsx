@@ -167,11 +167,14 @@ export const Interface = () => {
               value: d.value
           }));
 
+          // 使用第一个激活用户，若未登录则传 null 让后端自动识别
+          const userId = activeUsers.length > 0 ? activeUsers[0].id : null;
+
           // 调用API保存预设
           const { api } = await import('../services/api');
-          await api.savePreset(presetName, capturedFaceImage, capturedGestureImage, deviceStates);
+          const preset = await api.savePreset(userId, presetName, capturedFaceImage, capturedGestureImage, deviceStates);
 
-          addLog('预设保存成功！');
+          addLog(`预设保存成功！用户: ${preset.userName}, 预设: ${presetName}, 手势: ${preset.gestureDigit}`);
           setIsPresetOpen(false);
           setPresetName('');
           setCapturedFaceImage(null);
@@ -219,7 +222,7 @@ export const Interface = () => {
                       }
                   }
 
-                  addLog(`识别成功，已切换到 ${preset.userName} 的预设`);
+                  addLog(`识别成功 (手势: ${preset.gestureDigit})，已切换到 ${preset.userName} 的预设`);
               }
           }
       } catch (error: any) {
@@ -240,6 +243,10 @@ export const Interface = () => {
                     videoRef.current.srcObject = stream;
                     videoRef.current.play();
                 }
+                // 自动识别并应用预设（给摄像头一点时间启动）
+                setTimeout(() => {
+                    recognizeAndApplyPreset();
+                }, 1000);
             })
             .catch(err => {
                 console.error("Camera access denied:", err);

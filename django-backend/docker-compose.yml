@@ -1,0 +1,44 @@
+services:
+  django-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartroom-django-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./media:/app/media
+      - ./smartroom:/app/smartroom
+      - ./config:/app/config
+      - ./manage.py:/app/manage.py
+    environment:
+      - DEBUG=True
+      - DB_ENGINE=sqlite
+      - SQLITE_DB_PATH=/app/media/db.sqlite3
+      - DJANGO_SECRET_KEY=django-insecure-smartroom-dev-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+      - DEEPFACE_MODEL=VGG-Face
+      - DEEPFACE_DISTANCE_METRIC=cosine
+      - FACE_RECOGNITION_THRESHOLD=0.4
+      - MAX_HANDS=2
+      - MIN_DETECTION_CONFIDENCE=0.5
+      - MIN_TRACKING_CONFIDENCE=0.5
+      - HAND_LANDMARKER_MODEL_URL=https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+    # 使用 Django 开发服务器替代 Gunicorn，支持代码热重载，避免修改代码后需要重启容器
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - smartroom-network
+
+networks:
+  smartroom-network:
+    driver: bridge
+  iot-network:
+    external: true

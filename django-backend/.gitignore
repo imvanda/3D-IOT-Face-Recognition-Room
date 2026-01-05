@@ -1,0 +1,29 @@
+# Django
+*.pyc
+__pycache__/
+*.so
+.Python
+*.db
+*.log
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Media and Static
+media/*
+static/*
+!media/.gitkeep
+!static/.gitkeep
+
+# DeepFace cache
+.deepface/
+
+# OS
+.DS_Store
+Thumbs.db

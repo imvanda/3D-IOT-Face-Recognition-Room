@@ -9,6 +9,7 @@
 [![React](https://img.shields.io/badge/React-19.2.3-61DAFB?style=flat&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-0.182.0-000000?style=flat&logo=three.js)](https://threejs.org/)
+[![Django](https://img.shields.io/badge/Django-4.2.11-092E20?style=flat&logo=django)](https://www.djangoproject.com/)
 [![Node-RED](https://img.shields.io/badge/Node--RED-Latest-8F0000?style=flat&logo=node-red)](https://nodered.org/)
 [![ThingsBoard](https://img.shields.io/badge/ThingsBoard-3.x-008080?style=flat)](https://thingsboard.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -49,16 +50,17 @@
 │                        通信层                                    │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
 │  │  MQTT Broker │  │   REST API   │  │  WebSocket   │          │
-│  │  Mosquitto   │  │  Node-RED    │  │  (可选)      │          │
+│  │  Mosquitto   │  │ Django/Node-RED│  │  (可选)      │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
                            ↓ ↓ ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                        后端层                                    │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │  IoT平台     │  │  AI服务      │  │  生物识别    │          │
-│  │ ThingsBoard  │  │ Gemini AI    │  │ DeepFace/    │          │
-│  │              │  │              │  │ MediaPipe    │          │
+│  │  Django API  │  │  IoT平台     │  │  AI服务      │          │
+│  │ (人脸+手势)   │  │ ThingsBoard  │  │ Gemini AI    │          │
+│  │  DeepFace/   │  │              │  │              │          │
+│  │  MediaPipe   │  │              │  │              │          │
 │  └──────────────┘  └──────────────┘  └──────────────┘          │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -87,10 +89,10 @@
 
 | 服务 | 端口 | 用途 |
 |------|------|------|
-| **Node-RED** | 1880 | 可视化流程编排 + REST API |
+| **Django Backend** | 8000 | AI识别服务 (DeepFace + MediaPipe) |
+| **Node-RED** | 1880 | 可视化流程编排 + 设备控制API |
 | **ThingsBoard** | 8080 | 企业级IoT平台 |
 | **Mosquitto MQTT** | 1884/9001 | 消息队列 (TCP/WebSocket) |
-| **Python Backend** | 5000 | 人脸识别 + 手势识别 |
 
 ### AI & 机器学习
 
@@ -192,6 +194,14 @@ npm run dev
 │   ├── api.ts             # REST API调用封装
 │   ├── mqtt.ts            # MQTT客户端服务
 │   └── geminiService.ts   # AI语音指令解析
+├── django-backend/         # Django后端服务
+│   ├── config/            # Django配置
+│   ├── smartroom/         # 核心应用
+│   │   ├── models.py      # 数据模型
+│   │   ├── views.py       # API视图
+│   │   └── services/      # AI服务封装
+│   ├── Dockerfile         # Docker配置
+│   └── requirements.txt    # Python依赖
 ├── docker-compose.yml     # Docker服务编排
 ├── mosquitto/             # MQTT Broker配置
 │   └── config/
@@ -246,7 +256,22 @@ npm run dev
 3. 输入用户名并拍照注册
 4. 之后可通过人脸识别快速登录
 
-### 手势识别 (开发中)
+### 预设功能
+
+通过人脸+手势组合创建和识别预设：
+
+1. **创建预设**:
+   - 点击"创建预设"按钮
+   - 设置好设备状态后，输入预设名称
+   - 拍摄人脸和手势照片
+   - 保存预设配置
+
+2. **识别预设**:
+   - 点击"识别预设"按钮
+   - 同时拍摄人脸和手势
+   - 系统自动识别并应用对应的设备配置
+
+### 手势识别
 
 - 🖐️ **张开手掌** - 打开灯光
 - ✊ **握拳** - 关闭灯光
@@ -324,48 +349,122 @@ Content-Type: application/json
 }
 ```
 
-### 用户认证
+### 用户认证 (Django API)
 
 #### 用户注册
 
 ```http
-POST http://localhost:1880/api/v1/auth/register
+POST http://localhost:8000/api/v1/auth/register
 Content-Type: application/json
 
 {
   "name": "张三",
-  "faceImage": "base64_image_data..."
+  "face_image": "data:image/jpeg;base64,..."
 }
 ```
 
 响应:
 ```json
 {
-  "id": "user_001",
+  "id": "123e4567-e89b-12d3-a456-426614174000",
   "name": "张三",
-  "avatarUrl": "http://...",
-  "registeredAt": 1699200000000
+  "avatar_url": "data:image/jpeg;base64,...",
+  "registered_at": "2026-01-05T10:00:00Z"
 }
 ```
 
-#### 人脸识别
+#### 用户登录 (人脸识别)
 
 ```http
-POST http://localhost:1880/api/v1/auth/recognize
+POST http://localhost:8000/api/v1/auth/login
 Content-Type: application/json
 
 {
-  "faceImage": "base64_image_data..."
+  "face_image": "data:image/jpeg;base64,..."
 }
 ```
 
 响应:
 ```json
 {
-  "id": "user_001",
+  "id": "123e4567-e89b-12d3-a456-426614174000",
   "name": "张三",
-  "avatarUrl": "http://...",
+  "avatar_url": "data:image/jpeg;base64,...",
   "confidence": 0.95
+}
+```
+
+### 预设管理 (Django API)
+
+#### 创建预设
+
+```http
+POST http://localhost:8000/api/v1/presets/create/
+Content-Type: application/json
+
+{
+  "name": "工作模式",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "face_image": "data:image/jpeg;base64,...",
+  "gesture_image": "data:image/jpeg;base64,...",
+  "device_states": [
+    {"device_id": "light-main", "status": true, "value": 80},
+    {"device_id": "ac", "status": true, "value": 24}
+  ]
+}
+```
+
+响应:
+```json
+{
+  "id": "987fcdeb-51a2-43ed-a89c-1eb2e8c7c9f2",
+  "name": "工作模式",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "user_name": "张三",
+  "created_at": "2026-01-05T10:00:00Z"
+}
+```
+
+#### 识别预设
+
+```http
+POST http://localhost:8000/api/v1/presets/recognize/
+Content-Type: application/json
+
+{
+  "face_image": "data:image/jpeg;base64,...",
+  "gesture_image": "data:image/jpeg;base64,..."
+}
+```
+
+响应:
+```json
+{
+  "id": "987fcdeb-51a2-43ed-a89c-1eb2e8c7c9f2",
+  "name": "工作模式",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "user_name": "张三",
+  "device_states": [
+    {"device_id": "light-main", "status": true, "value": 80},
+    {"device_id": "ac", "status": true, "value": 24}
+  ],
+  "confidence": 0.92
+}
+```
+
+### Node-RED 设备管理
+
+#### 批量更新设备
+
+```http
+POST http://localhost:1880/api/v1/devices/batch
+Content-Type: application/json
+
+{
+  "updates": [
+    { "id": "light-main", "status": true },
+    { "id": "ac", "value": 24 }
+  ]
 }
 ```
 
@@ -375,6 +474,21 @@ Content-Type: application/json
 |-------|------|
 | `iot/room/devices` | 全局设备状态广播 |
 | `iot/room/devices/{device_id}` | 单设备状态更新 |
+
+### Django API Health Check
+
+```http
+GET http://localhost:8000/api/v1/health/
+```
+
+响应:
+```json
+{
+  "status": "healthy",
+  "service": "SmartRoom Django Backend",
+  "version": "1.0.0"
+}
+```
 
 ---
 
@@ -521,11 +635,17 @@ docker exec my-node-red cat /data/flows.json
 
 **解决方案**:
 ```bash
-# 确认Python服务已启动
-docker ps | grep python-backend
+# 确认Django服务已启动
+docker ps | grep django-backend
+
+# 检查服务日志
+docker logs smartroom-django-backend
 
 # 检查DeepFace依赖
-docker exec my-python-backend pip list | grep deepface
+docker exec smartroom-django-backend pip list | grep deepface
+
+# 健康检查
+curl http://localhost:8000/api/v1/health/
 ```
 
 ### 3D场景黑屏
@@ -580,6 +700,7 @@ docker exec my-python-backend pip list | grep deepface
 
 - [React](https://react.dev/) - UI框架
 - [Three.js](https://threejs.org/) - 3D引擎
+- [Django](https://www.djangoproject.com/) - Python Web框架
 - [Node-RED](https://nodered.org/) - 可视化编程
 - [ThingsBoard](https://thingsboard.io/) - IoT平台
 - [Google Gemini AI](https://aistudio.google.com/) - AI服务
