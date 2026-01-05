@@ -19,6 +19,13 @@
 ---
 
 ## 📖 项目简介
+<img width="2560" height="1305" alt="image" src="https://github.com/user-attachments/assets/b22438af-b6ad-4732-a701-6d6a64872a27" />
+
+https://github.com/user-attachments/assets/be351ff0-1be1-4f0e-b167-ae2e0bbe0ae9
+
+
+
+
 
 3D智能虚拟房间是一个基于Web的智能家居物联网管理系统，采用第一人称视角3D漫游技术，结合AI语音控制和生物识别技术，提供沉浸式的智能家居体验。
 
